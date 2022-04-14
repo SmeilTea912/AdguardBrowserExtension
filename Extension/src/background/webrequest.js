@@ -1162,17 +1162,6 @@ const webrequestInit = function () {
         // load subscribe script on dom content load
         tabsApi.executeScriptFile(tab.tabId, { file: '/content-script/subscribe.js', frameId });
     });
-
-    /**
-     *
-     *
-     */
-    backgroundPage.webNavigation.onCommitted.addListener((details) => {
-        // debugger;
-        const { tabId, frameId } = details;
-        // load subscribe subscribe-to-scriptlets ??????on dom content load?????
-        tabsApi.executeScriptFile(tabId, { file: '/content-script/subscribe-to-scriptlets.js', frameId });
-    });
 };
 
 export const webrequest = {

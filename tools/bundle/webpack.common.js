@@ -277,11 +277,6 @@ export const genCommonConfig = (browserConfig) => {
                         from: 'src/content-script/subscribe.js',
                         to: 'content-script/subscribe.js',
                     },
-                    {
-                        context: 'Extension',
-                        from: 'src/content-script/subscribe-to-scriptlets.js',
-                        to: 'content-script/subscribe-to-scriptlets.js',
-                    },
                 ],
             }),
         ],

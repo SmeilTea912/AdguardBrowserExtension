@@ -15,25 +15,32 @@
  * along with Adguard Browser Extension. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* global contentPage */
+import { contentPage } from './content-script';
 
-/**
- * Script used to subscribe to events that are fired by scriptlets
- */
- (function () {
-    debugger;
-    if (!(document instanceof HTMLDocument)) {
-        return;
-    }
-
-    const scriptletCloseWindowHandler = (e) => {
-        debugger;
-        contentPage.sendMessage({
-            type: 'scriptletCloseWindowHit',
-            data: e,
-        });
+export const subscribeToScriptlets = (function () {
+    /**
+     * Subscribe to close-window scriptlet
+     */
+    const subscribeToCloseWindow = async () => {
+        const closeWindowHandler = (e) => {
+            console.log('c-s: handler triggered');
+            contentPage.sendMessage({
+                type: 'scriptletCloseWindowHit',
+                data: e,
+            });
+        };
+        window.addEventListener('scriptlet-close-window-hit', closeWindowHandler);
+        dispatchEvent(new Event('subscribed-to-close-window'));
     };
-    console.log('right before add listener in content-script');
-    window.addEventListener('scriptlet-close-window-hit', scriptletCloseWindowHandler);
-    console.log('right after add listener in content-script');
+
+    /**
+     * Initializing content script
+     */
+    const init = function () {
+        subscribeToCloseWindow();
+    };
+
+    return {
+        init,
+    };
 })();
