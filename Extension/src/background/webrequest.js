@@ -612,7 +612,7 @@ const webrequestInit = function () {
                 }, 3000);
                 break;
             default:
-            // do noting
+                // do noting
         }
     });
 
