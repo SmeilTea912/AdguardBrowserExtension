@@ -1,4 +1,4 @@
-import { UserSettingOption, UserSettings } from './settings';
+import { SettingOption, Settings } from './settings';
 
 /**
  * Message types used for message passing between background page and
@@ -124,16 +124,38 @@ export type GetOptionsDataMessage = {
   type: MessageType.GET_OPTIONS_DATA;
 };
 
-export type ChangeUserSettingMessage<T extends UserSettingOption = UserSettingOption> = {
+export type ChangeUserSettingMessage<T extends SettingOption = SettingOption> = {
   type: MessageType.CHANGE_USER_SETTING;
   data: {
     key: T,
-    value: UserSettings[T]
+    value: Settings[T]
   }
 };
 
 export type ResetSettingsMessage = {
   type: MessageType.RESET_SETTINGS
+};
+
+export type AddAndEnableFilterMessage = {
+  type: MessageType.ADD_AND_ENABLE_FILTER
+  data: {
+    filterId: number
+  }
+};
+
+export type DisableAntiBannerFilter = {
+  type: MessageType.DISABLE_ANTIBANNER_FILTER
+  data: {
+    filterId: number,
+    remove: boolean
+  }
+};
+
+export type RemoveAntiBannerFilter = {
+  type: MessageType.REMOVE_ANTIBANNER_FILTER
+  data: {
+    filterId: number
+  }
 };
 
 export type Message = (
@@ -147,6 +169,9 @@ export type Message = (
   | GetOptionsDataMessage
   | ChangeUserSettingMessage
   | ResetSettingsMessage
+  | AddAndEnableFilterMessage
+  | DisableAntiBannerFilter
+  | RemoveAntiBannerFilter
 ) &
   MessageCommonProps;
 

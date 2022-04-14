@@ -21,7 +21,11 @@ export class UserAgent {
 
     static isChrome = UserAgent.browserName === 'Chrome';
 
+    static isFirefox = UserAgent.browserName === 'Firefox';
+
     static isEdge = UserAgent.browserName === 'Microsoft Edge';
+
+    static isOpera = UserAgent.browserName = 'Opera';
 
     static osName = UserAgent.data.os.name;
 

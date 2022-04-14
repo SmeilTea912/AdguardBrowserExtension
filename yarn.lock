@@ -22,12 +22,20 @@
     "@babel/runtime" "^7.7.2"
     js-yaml "^3.13.1"
 
+"@adguard/scriptlets@^1.6.6":
+  version "1.6.6"
+  resolved "https://registry.yarnpkg.com/@adguard/scriptlets/-/scriptlets-1.6.6.tgz#32cca5a9133b995fd40bbca9c576f1c66aa91d95"
+  integrity sha512-fIzw5iv1iorHV58drGn+vUXKeT0Fun84Q5DnXbo2T1jPasuNgS6TI/w1wEVhdXyNSTfRbFnCCZQ9FaDMUfebAg==
+  dependencies:
+    "@babel/runtime" "^7.7.2"
+    js-yaml "^3.13.1"
+
 "@adguard/translate@^0.2.5":
   version "0.2.6"
   resolved "https://registry.yarnpkg.com/@adguard/translate/-/translate-0.2.6.tgz#47a04c0fe9c4a23de5f84124313a1bf2aa986677"
   integrity sha512-0i351ZZ9AcAm2Jy5lxbvXUGAX82QmEU9NiIu4s0k4J0hvC3tWR1m9yypgqgpR8ig67Fj/+i4deXfKL8jDRiM8g==
 
-"@adguard/tsurlfilter@^0.7.37", "@adguard/tsurlfilter@^0.7.59":
+"@adguard/tsurlfilter@^0.7.37":
   version "0.7.65"
   resolved "https://registry.yarnpkg.com/@adguard/tsurlfilter/-/tsurlfilter-0.7.65.tgz#7a3790d8bf9d3ca7877c17d5404092e1082a8141"
   integrity sha512-53+qmbB4o+Cvshx0GnVQ4ekI9JHRaXGKfcoIL5f0ifTEnKyC+8yoGfsKNnle3HvTgPnNQxnmvj4VojTHH9OJpw==
@@ -41,6 +49,23 @@
     netmask "^2.0.2"
     punycode "^2.1.1"
     text-encoding "git+https://github.com/AdguardTeam/text-encoding.git#v0.7.1"
+    tldts "^5.6.45"
+    webextension-polyfill "^0.8.0"
+
+"@adguard/tsurlfilter@^0.7.74":
+  version "0.7.74"
+  resolved "https://registry.yarnpkg.com/@adguard/tsurlfilter/-/tsurlfilter-0.7.74.tgz#5b51c408d749dd03312edec3c3f7e788e0fea08c"
+  integrity sha512-5W/lljyIhmU1oFbWE9wqHqyjcShxwA1LsGsJad3gCJxwdEiqDtJOWSw3Sbmp2AHF50w0j7YdhsLEl/+z0fjh9g==
+  dependencies:
+    "@adguard/scriptlets" "^1.6.6"
+    extended-css "git+https://github.com/AdguardTeam/ExtendedCss.git#v1.3.14"
+    ip6addr "^0.2.3"
+    is-cidr "^4.0.2"
+    is-ip "^3.1.0"
+    lru_map "^0.4.1"
+    netmask "^2.0.2"
+    punycode "^2.1.1"
+    text-encoding "git+https://github.com/AdguardTeam/text-encoding.git#v0.7.2"
     tldts "^5.6.45"
     webextension-polyfill "^0.8.0"
 
@@ -2834,15 +2859,20 @@ camelcase@^6.2.0:
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-6.3.0.tgz#5685b95eb209ac9c0c177467778c9c84df58ba9a"
   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
-caniuse-lite@^1.0.30000981, caniuse-lite@^1.0.30001109, caniuse-lite@^1.0.30001317:
-  version "1.0.30001319"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001319.tgz#eb4da4eb3ecdd409f7ba1907820061d56096e88f"
-  integrity sha512-xjlIAFHucBRSMUo1kb5D4LYgcN1M45qdKP++lhqowDpwJwGkpIRTt5qQqnhxjj1vHcI7nrJxWhCC1ATrCEBTcw==
+caniuse-lite@^1.0.30000981, caniuse-lite@^1.0.30001109:
+  version "1.0.30001327"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001327.tgz#c1546d7d7bb66506f0ccdad6a7d07fc6d668c858"
+  integrity sha512-1/Cg4jlD9qjZzhbzkzEaAC2JHsP0WrOc8Rd/3a3LuajGzGWR/hD7TVyvq99VqmTy99eVh8Zkmdq213OgvgXx7w==
 
 caniuse-lite@^1.0.30001313:
   version "1.0.30001317"
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001317.tgz#0548fb28fd5bc259a70b8c1ffdbe598037666a1b"
   integrity sha512-xIZLh8gBm4dqNX0gkzrBeyI86J2eCjWzYAs40q88smG844YIrN4tVQl/RhquHvKEKImWWFIVh1Lxe5n1G/N+GQ==
+
+caniuse-lite@^1.0.30001317:
+  version "1.0.30001319"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001319.tgz#eb4da4eb3ecdd409f7ba1907820061d56096e88f"
+  integrity sha512-xjlIAFHucBRSMUo1kb5D4LYgcN1M45qdKP++lhqowDpwJwGkpIRTt5qQqnhxjj1vHcI7nrJxWhCC1ATrCEBTcw==
 
 caseless@~0.12.0:
   version "0.12.0"
@@ -4494,6 +4524,10 @@ extend@~3.0.2:
 "extended-css@git+https://github.com/AdguardTeam/ExtendedCss.git#v1.3.13":
   version "1.3.13"
   resolved "git+https://github.com/AdguardTeam/ExtendedCss.git#66c6c9a390f53325876e54e3de486338b2535a2c"
+
+"extended-css@git+https://github.com/AdguardTeam/ExtendedCss.git#v1.3.14":
+  version "1.3.14"
+  resolved "git+https://github.com/AdguardTeam/ExtendedCss.git#e8e2b1d1a732d3043b2227b4bd5511300b33ea3d"
 
 extglob@^2.0.4:
   version "2.0.4"
@@ -8213,7 +8247,16 @@ postcss@^7.0.14, postcss@^7.0.17, postcss@^7.0.2, postcss@^7.0.32, postcss@^7.0.
     picocolors "^0.2.1"
     source-map "^0.6.1"
 
-postcss@^8.3.6, postcss@^8.4.7:
+postcss@^8.3.6:
+  version "8.4.12"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.12.tgz#1e7de78733b28970fa4743f7da6f3763648b1905"
+  integrity sha512-lg6eITwYe9v6Hr5CncVbK70SoioNQIq81nsaG86ev5hAidQvmOeETBqs7jm43K2F5/Ley3ytDtriImV6TpNiSg==
+  dependencies:
+    nanoid "^3.3.1"
+    picocolors "^1.0.0"
+    source-map-js "^1.0.2"
+
+postcss@^8.4.7:
   version "8.4.8"
   resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.8.tgz#dad963a76e82c081a0657d3a2f3602ce10c2e032"
   integrity sha512-2tXEqGxrjvAO6U+CJzDL2Fk2kPHTv1jQsYkSoMeOis2SsYaXRO2COxTdQp99cYvif9JTXaAk9lYGc3VhJt7JPQ==
@@ -9596,6 +9639,10 @@ test-exclude@^6.0.0:
 "text-encoding@git+https://github.com/AdguardTeam/text-encoding.git#v0.7.1":
   version "0.7.0"
   resolved "git+https://github.com/AdguardTeam/text-encoding.git#80dbd7df2b17858e8e9e2da00e9134d4ca63d8ad"
+
+"text-encoding@git+https://github.com/AdguardTeam/text-encoding.git#v0.7.2":
+  version "0.7.2"
+  resolved "git+https://github.com/AdguardTeam/text-encoding.git#4268d6b7dc0e15f57134545ae1c8c59e9c5ced70"
 
 text-table@^0.2.0:
   version "0.2.0"

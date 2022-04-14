@@ -4,10 +4,12 @@ import { messageHandler } from '../message-handler';
 import { MessageType, OpenAbuseTabMessage, OpenSiteReportTabMessage } from '../../common/messages';
 import { UserAgent } from '../../common/user-agent';
 import { TabsApi } from '../extension-api/tabs';
-import { tsWebExtension } from '../tswebextension';
+import { tsWebExtensionWrapper } from '../tswebextension';
 import { UrlUtils } from '../utils/url';
-import { userSettingsStorage } from './settings/user-settings-storage';
-import { UserSettingOption } from '../../common/settings';
+import { settingsStorage } from './settings/settings-storage';
+import { SettingOption } from '../../common/settings';
+import { listeners } from '../notifier';
+import { application } from '../application';
 
 export class UiService {
     static baseUrl = browser.runtime.getURL('/');
@@ -22,6 +24,7 @@ export class UiService {
         messageHandler.addListener(MessageType.OPEN_ABUSE_TAB, UiService.openAbuseTab);
         messageHandler.addListener(MessageType.OPEN_SITE_REPORT_TAB, UiService.openSiteReportTab);
         messageHandler.addListener(MessageType.OPEN_ASSISTANT, UiService.openAssistant);
+        messageHandler.addListener(MessageType.CHECK_ANTIBANNER_FILTERS_UPDATE, UiService.checkFiltersUpdates);
     }
 
     // listeners
@@ -57,7 +60,7 @@ export class UiService {
             browserName = 'Other';
         }
 
-        const filterIds = tsWebExtension.configuration.filters.map(filter => filter.filterId);
+        const filterIds = tsWebExtensionWrapper.tsWebExtension.configuration.filters.map(filter => filter.filterId);
 
         await browser.tabs.create({
             url: `https://reports.adguard.com/new_issue.html?product_type=Ext&product_version=${
@@ -90,7 +93,7 @@ export class UiService {
 
     static async openAssistant(): Promise<void> {
         const activeTab = await TabsApi.findOne({ active: true });
-        tsWebExtension.openAssistant(activeTab.id);
+        tsWebExtensionWrapper.tsWebExtension.openAssistant(activeTab.id);
     }
 
     // helpers
@@ -100,13 +103,13 @@ export class UiService {
     }
 
     static getBrowserSecurityString(): string {
-        const isEnabled = !userSettingsStorage.get(UserSettingOption.DISABLE_SAFEBROWSING);
+        const isEnabled = !settingsStorage.get(SettingOption.DISABLE_SAFEBROWSING);
         return `&browsing_security.enabled=${isEnabled}`;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     static getStealthString(filterIds: number[]): string {
-        const stealthEnabled = !userSettingsStorage.get(UserSettingOption.DISABLE_STEALTH_MODE);
+        const stealthEnabled = !settingsStorage.get(SettingOption.DISABLE_STEALTH_MODE);
 
         if (!stealthEnabled) {
             return '&stealth.enabled=false';
@@ -114,39 +117,39 @@ export class UiService {
         const stealthOptions = [
             {
                 queryKey: 'ext_hide_referrer',
-                settingKey: UserSettingOption.HIDE_REFERRER,
+                settingKey: SettingOption.HIDE_REFERRER,
             },
             {
                 queryKey: 'hide_search_queries',
-                settingKey: UserSettingOption.HIDE_SEARCH_QUERIES,
+                settingKey: SettingOption.HIDE_SEARCH_QUERIES,
             },
             {
                 queryKey: 'DNT',
-                settingKey: UserSettingOption.SEND_DO_NOT_TRACK,
+                settingKey: SettingOption.SEND_DO_NOT_TRACK,
             },
             {
                 queryKey: 'x_client',
-                settingKey: UserSettingOption.BLOCK_CHROME_CLIENT_DATA,
+                settingKey: SettingOption.BLOCK_CHROME_CLIENT_DATA,
             },
             {
                 queryKey: 'webrtc',
-                settingKey: UserSettingOption.BLOCK_WEBRTC,
+                settingKey: SettingOption.BLOCK_WEBRTC,
             },
             {
                 queryKey: 'third_party_cookies',
-                settingKey: UserSettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES,
-                settingValueKey: UserSettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES_TIME,
+                settingKey: SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES,
+                settingValueKey: SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES_TIME,
             },
             {
                 queryKey: 'first_party_cookies',
-                settingKey: UserSettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES,
-                settingValueKey: UserSettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES_TIME,
+                settingKey: SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES,
+                settingValueKey: SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES_TIME,
             },
         ];
 
         const stealthOptionsString = stealthOptions.map((option) => {
             const { queryKey, settingKey, settingValueKey } = option;
-            const setting = userSettingsStorage.get(settingKey);
+            const setting = settingsStorage.get(settingKey);
             let settingString: string;
             if (!setting) {
                 return '';
@@ -154,7 +157,7 @@ export class UiService {
             if (!settingValueKey) {
                 settingString = setting.toString();
             } else {
-                settingString = userSettingsStorage.get(settingValueKey).toString();
+                settingString = settingsStorage.get(settingValueKey).toString();
             }
             return `stealth.${queryKey}=${encodeURIComponent(settingString)}`;
         })
@@ -171,5 +174,33 @@ export class UiService {
         */
 
         return `&stealth.enabled=true&${stealthOptionsString}`;
+    }
+
+    /**
+     * Checks filters updates and returns updated filter
+     * @param {Object[]} [filters] optional list of filters
+     * @param {boolean} [showPopup = true] show update filters popup
+     * @return {Object[]} [filters] list of updated filters
+     */
+    static async checkFiltersUpdates(filters, showPopup = true) {
+        const showPopupEvent = listeners.UPDATE_FILTERS_SHOW_POPUP;
+
+        try {
+            const updatedFilters = await application.checkFiltersUpdates(filters);
+            if (showPopup) {
+                listeners.notifyListeners(showPopupEvent, true, updatedFilters);
+                listeners.notifyListeners(listeners.FILTERS_UPDATE_CHECK_READY, updatedFilters);
+            } else if (updatedFilters && updatedFilters.length > 0) {
+                const updatedFilterStr = updatedFilters.map(f => `Filter ID: ${f.filterId}`).join(', ');
+                console.info(`Filters were auto updated: ${updatedFilterStr}`);
+            }
+            return updatedFilters;
+        } catch (e) {
+            if (showPopup) {
+                listeners.notifyListeners(showPopupEvent, false);
+                listeners.notifyListeners(listeners.FILTERS_UPDATE_CHECK_READY);
+            }
+            return [];
+        }
     }
 }
