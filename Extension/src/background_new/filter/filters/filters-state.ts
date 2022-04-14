@@ -42,6 +42,28 @@ type StorageData<T> = { [key: number]: T };
   * Helper class for working with filters metadata storage (local storage)
   */
 export class FiltersState {
+    constructor() {
+        // TODO: in service
+        // Add event listener to persist filter metadata to local storage
+        listeners.addListener((event, payload) => {
+            switch (event) {
+                case listeners.SUCCESS_DOWNLOAD_FILTER:
+                    FiltersState.updateFilterState(payload);
+                    FiltersState.updateFilterVersion(payload);
+                    break;
+                case listeners.FILTER_ADD_REMOVE:
+                case listeners.FILTER_ENABLE_DISABLE:
+                    FiltersState.updateFilterState(payload);
+                    break;
+                case listeners.FILTER_GROUP_ENABLE_DISABLE:
+                    FiltersState.updateGroupState(payload);
+                    break;
+                default:
+                    break;
+            }
+        });
+    }
+
     /**
       * Gets filter version from the local storage
       */
@@ -148,22 +170,4 @@ export class FiltersState {
     }
 }
 
-// TODO: in service
-// Add event listener to persist filter metadata to local storage
-listeners.addListener((event, payload) => {
-    switch (event) {
-        case listeners.SUCCESS_DOWNLOAD_FILTER:
-            FiltersState.updateFilterState(payload);
-            FiltersState.updateFilterVersion(payload);
-            break;
-        case listeners.FILTER_ADD_REMOVE:
-        case listeners.FILTER_ENABLE_DISABLE:
-            FiltersState.updateFilterState(payload);
-            break;
-        case listeners.FILTER_GROUP_ENABLE_DISABLE:
-            FiltersState.updateGroupState(payload);
-            break;
-        default:
-            break;
-    }
-});
+export const fitlersState = new FiltersState();

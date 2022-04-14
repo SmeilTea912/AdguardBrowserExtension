@@ -37,51 +37,48 @@ export const application = (() => {
     const ENABLED_FILTERS_SKIP_TIMEOUT = 5 * 60 * 1000;
 
     const start = async (options?) => {
-        initHandlers();
         await antiBannerService.start(options);
     };
 
-    const initHandlers = () => {
-        messageHandler.addListener(MessageType.ADD_AND_ENABLE_FILTER, (message) => {
-            const { filterId } = message.data;
+    messageHandler.addListener(MessageType.ADD_AND_ENABLE_FILTER, (message) => {
+        const { filterId } = message.data;
 
-            return addAndEnableFilters([filterId], { forceRemote: true });
-        });
+        return addAndEnableFilters([filterId], { forceRemote: true });
+    });
 
-        messageHandler.addListener(MessageType.DISABLE_ANTIBANNER_FILTER, (message) => {
-            const { filterId, remove } = message.data;
-            if (remove) {
-                uninstallFilters([filterId]);
-            } else {
-                disableFilters([filterId]);
-            }
-        });
+    messageHandler.addListener(MessageType.DISABLE_ANTIBANNER_FILTER, (message) => {
+        const { filterId, remove } = message.data;
+        if (remove) {
+            uninstallFilters([filterId]);
+        } else {
+            disableFilters([filterId]);
+        }
+    });
 
-        messageHandler.addListener(MessageType.REMOVE_ANTIBANNER_FILTER, (message) => {
-            const { filterId } = message.data;
-            removeFilter(filterId);
-        });
+    messageHandler.addListener(MessageType.REMOVE_ANTIBANNER_FILTER, (message) => {
+        const { filterId } = message.data;
+        removeFilter(filterId);
+    });
 
-        messageHandler.addListener(MessageType.LOAD_CUSTOM_FILTER_INFO, (message) => {
-            const { url, title } = message.data;
-            return loadCustomFilterInfo(url, { title });
-        });
+    messageHandler.addListener(MessageType.LOAD_CUSTOM_FILTER_INFO, (message) => {
+        const { url, title } = message.data;
+        return loadCustomFilterInfo(url, { title });
+    });
 
-        messageHandler.addListener(MessageType.SUBSCRIBE_TO_CUSTOM_FILTER, async (message) => {
-            const { customUrl, name, trusted } = message.data.filter;
-            try {
-                const filter = await loadCustomFilter(customUrl, { title: name, trusted });
-                await application.addAndEnableFilters([filter.filterId]);
-                return filter;
-            } catch (e) {
-                // do nothing
-            }
-        });
+    messageHandler.addListener(MessageType.SUBSCRIBE_TO_CUSTOM_FILTER, async (message) => {
+        const { customUrl, name, trusted } = message.data.filter;
+        try {
+            const filter = await loadCustomFilter(customUrl, { title: name, trusted });
+            await application.addAndEnableFilters([filter.filterId]);
+            return filter;
+        } catch (e) {
+            // do nothing
+        }
+    });
 
-        messageHandler.addListener(MessageType.CHECK_REQUEST_FILTER_READY, () => {
-            return { ready: antiBannerService.isReady() };
-        });
-    };
+    messageHandler.addListener(MessageType.CHECK_REQUEST_FILTER_READY, () => {
+        return { ready: antiBannerService.isReady() };
+    });
 
     const stop = async () => {
         await antiBannerService.stop();

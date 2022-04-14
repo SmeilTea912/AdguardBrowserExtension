@@ -81,6 +81,8 @@ export const listeners = (() => {
                 throw new Error(`Illegal event: ${event}`);
             }
 
+            console.log(...args);
+
             Object.entries(this.listenersMap).forEach(([listenerId, listener]) => {
                 const events = this.listenersEventsMap[listenerId];
                 if (events && events.length > 0 && events.indexOf(event) < 0) {

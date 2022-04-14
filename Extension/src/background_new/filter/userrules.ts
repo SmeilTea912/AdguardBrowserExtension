@@ -71,7 +71,8 @@ export const userrules = (function () {
      * Loads user rules text from storage
      */
     const getUserRulesText = async function () {
-        const rulesText = await browser.storage.local.get(`${AntiBannerFiltersId.USER_FILTER_ID}`);
+        const key = `filterrules_${AntiBannerFiltersId.USER_FILTER_ID}.txt`;
+        const { [key]: rulesText } = await browser.storage.local.get(key);
         const content = (rulesText || []).join('\n');
         return content;
     };

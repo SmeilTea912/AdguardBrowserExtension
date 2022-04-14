@@ -35,7 +35,7 @@ export const filtersUpdate = (() => {
     const UPDATE_FILTERS_DELAY = 5 * 60 * 1000;
 
     // Get filters update period
-    let filtersUpdatePeriod = settingsStorage.get(SettingOption.FILTERS_UPDATE_PERIOD);
+    let filtersUpdatePeriod = -1; // settingsStorage.get(SettingOption.FILTERS_UPDATE_PERIOD);
 
     /**
      * Gets expires in sec end return in ms

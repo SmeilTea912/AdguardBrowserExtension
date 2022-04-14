@@ -313,10 +313,10 @@ export const customFilters = (() => {
             metadataCache.updateFilters(filter);
             saveCustomFilterInStorage(filter);
         }
-        /* TODO
+
         listeners.notifyListeners(listeners.SUCCESS_DOWNLOAD_FILTER, filter);
         listeners.notifyListeners(listeners.UPDATE_FILTER_RULES, filter, rules);
-        */
+
         return filter.filterId;
     };
 

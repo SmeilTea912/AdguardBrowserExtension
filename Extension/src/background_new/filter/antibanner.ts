@@ -14,20 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Adguard Browser Extension. If not, see <http://www.gnu.org/licenses/>.
  */
-import merge from 'deepmerge';
 import browser from 'webextension-polyfill';
-import { Configuration } from '@adguard/tswebextension';
 
 import { RuleConverter } from '@adguard/tsurlfilter';
 import { listeners } from '../notifier';
-// TODO
-// import { applicationUpdateService } from '../update-service';
+import { applicationUpdateService } from '../update-service';
 import { subscriptions } from './filters/subscription';
 import { log } from '../../common/log';
 import { filtersUpdate } from './filters/filters-update';
 import { customFilters } from './filters/custom-filters';
 import { userrules } from './userrules';
-import { tsWebExtensionWrapper } from '../tswebextension';
+import { tsWebExtension, mergeConfig } from '../tswebextension';
 import { AntiBannerFiltersId } from '../../common/constants';
 import { settingsStorage } from '../services/settings/settings-storage';
 import { SettingOption } from '../../common/settings';
@@ -143,11 +140,9 @@ export const antiBannerService = (() => {
         /**
          * Init extension common info.
          */
-        // TODO
-        // const runInfo = await applicationUpdateService.getRunInfo();
+        const runInfo = await applicationUpdateService.getRunInfo();
         await subscriptions.init();
-        // TODO
-        // await onSubscriptionLoaded(runInfo);
+        await onSubscriptionLoaded(runInfo);
     }
 
     /**
@@ -174,7 +169,7 @@ export const antiBannerService = (() => {
      * Request Filter info
      */
     const getRequestFilterInfo = function () {
-        const rulesCount = tsWebExtensionWrapper.getRulesCount();
+        const rulesCount = tsWebExtension.getRulesCount();
 
         return { rulesCount };
     };
@@ -184,7 +179,7 @@ export const antiBannerService = (() => {
      */
     const stop = async function () {
         applicationRunning = false;
-        await tsWebExtensionWrapper.stop();
+        await tsWebExtension.stop();
 
         listeners.notifyListeners(listeners.REQUEST_FILTER_UPDATED, getRequestFilterInfo());
     };
@@ -321,7 +316,7 @@ export const antiBannerService = (() => {
             log.info(
                 'Finished request filter initialization in {0} ms. Rules count: {1}',
                 (new Date().getTime() - start),
-                tsWebExtensionWrapper.getRulesCount(),
+                tsWebExtension.getRulesCount(),
             );
 
             /**
@@ -332,12 +327,12 @@ export const antiBannerService = (() => {
                 return;
             }
 
-            if (tsWebExtensionWrapper.getRulesCount() === 0 && !reloadedRules) {
+            if (tsWebExtension.getRulesCount() === 0 && !reloadedRules) {
                 // https://github.com/AdguardTeam/AdguardBrowserExtension/issues/205
                 log.info('No rules have been found - checking filter updates');
                 reloadAntiBannerFilters();
                 reloadedRules = true;
-            } else if (tsWebExtensionWrapper.getRulesCount() > 0 && reloadedRules) {
+            } else if (tsWebExtension.getRulesCount() > 0 && reloadedRules) {
                 log.info('Filters reloaded, deleting reloadRules flag');
                 reloadedRules = false;
             }
@@ -372,7 +367,7 @@ export const antiBannerService = (() => {
                 const rulesTexts = rulesFilterMap[filterId].join('\n');
 
                 filters.push({
-                    filterId,
+                    filterId: id,
                     content: rulesTexts,
                 });
             }
@@ -383,10 +378,36 @@ export const antiBannerService = (() => {
                 userrules,
             };
 
-            if (!tsWebExtensionWrapper.tsWebExtension.isStarted) {
-                await tsWebExtensionWrapper.start(config);
+            if (!tsWebExtension.isStarted) {
+                await tsWebExtension.start({
+                    ...config,
+                    verbose: false,
+                    settings: {
+                        collectStats: !settingsStorage.get(SettingOption.DISABLE_COLLECT_HITS),
+                        allowlistInverted: !settingsStorage.get(SettingOption.DEFAULT_ALLOWLIST_MODE),
+                        stealth: {
+                            blockChromeClientData: settingsStorage.get(SettingOption.BLOCK_CHROME_CLIENT_DATA),
+                            hideReferrer: settingsStorage.get(SettingOption.HIDE_REFERRER),
+                            hideSearchQueries: settingsStorage.get(SettingOption.HIDE_SEARCH_QUERIES),
+                            sendDoNotTrack: settingsStorage.get(SettingOption.SEND_DO_NOT_TRACK),
+                            blockWebRTC: settingsStorage.get(SettingOption.BLOCK_WEBRTC),
+                            selfDestructThirdPartyCookies: settingsStorage.get(
+                                SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES,
+                            ),
+                            selfDestructThirdPartyCookiesTime: settingsStorage.get(
+                                SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES_TIME,
+                            ),
+                            selfDestructFirstPartyCookies: settingsStorage.get(
+                                SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES,
+                            ),
+                            selfDestructFirstPartyCookiesTime: settingsStorage.get(
+                                SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES_TIME,
+                            ),
+                        },
+                    },
+                });
             } else {
-                await tsWebExtensionWrapper.configure(config);
+                await tsWebExtension.configure(mergeConfig(tsWebExtension.configuration, config));
             }
 
             requestFilterInitialized();
@@ -428,8 +449,9 @@ export const antiBannerService = (() => {
          * @param rulesFilterMap Map for loading rules
          * @returns {*} Deferred object
          */
-        const loadFilterRulesFromStorage = async (filterId, rulesFilterMap) => {
-            let rulesText = await browser.storage.local.get(filterId);
+        const loadFilterRulesFromStorage = async (filterId: number, rulesFilterMap) => {
+            const key = `filterrules_${filterId}.txt`;
+            let { [key]: rulesText } = await browser.storage.local.get(key);
             if (rulesText) {
                 if (Number(filterId) === AntiBannerFiltersId.USER_FILTER_ID) {
                     rulesText = userrules.convertRules(rulesText);
@@ -572,7 +594,8 @@ export const antiBannerService = (() => {
      * @private
      */
     async function processSaveFilterRulesToStorageEvents(filterId, events) {
-        let loadedRulesText = await browser.storage.local.get(filterId);
+        const key = `filterrules_${filterId}.txt`;
+        let { [key]: loadedRulesText } = await browser.storage.local.get(key);
 
         for (let i = 0; i < events.length; i += 1) {
             if (!loadedRulesText) {
@@ -614,7 +637,7 @@ export const antiBannerService = (() => {
 
         log.debug('Saving {0} rules to filter {1}', rulesTextToSave.length, filterId);
 
-        await browser.storage.local.set({ [filterId]: rulesTextToSave });
+        await browser.storage.local.set({ [`filterrules_${filterId}.txt`]: rulesTextToSave });
         // notify that user rules were saved, to update saving button on options page
         if (Number(filterId) === AntiBannerFiltersId.USER_FILTER_ID) {
             listeners.notifyListeners(listeners.USER_FILTER_UPDATED);
@@ -679,5 +702,7 @@ export const antiBannerService = (() => {
         getRequestFilterInitTime,
 
         getRequestFilterInfo,
+
+        createRequestFilter,
     };
 })();
