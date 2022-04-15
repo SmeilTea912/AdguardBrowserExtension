@@ -1053,7 +1053,7 @@ const webrequestInit = function () {
                         || frameUrl === 'about:srcdoc'
                         // eslint-disable-next-line no-script-url
                         || frameUrl.indexOf('javascript:') > -1)
-                        && frameId !== MAIN_FRAME_ID;
+                    && frameId !== MAIN_FRAME_ID;
             }
 
             /**
