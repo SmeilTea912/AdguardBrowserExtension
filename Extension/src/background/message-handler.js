@@ -270,7 +270,7 @@ const createMessageHandler = () => {
         const { data, type } = message;
 
         switch (type) {
-            case MESSAGE_TYPES.SCRIPTLET_CLOSE_WINDOW_HIT: {
+            case MESSAGE_TYPES.SCRIPTLET_CLOSE_WINDOW: {
                 const { tabId } = sender.tab;
                 tabsApi.remove(tabId);
                 break;

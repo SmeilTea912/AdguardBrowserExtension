@@ -19,16 +19,15 @@ import { contentPage } from './content-script';
 
 export const subscribeToScriptlets = (function () {
     /**
-     * Subscribe to close-window scriptlet
+     * Subscribe to close-window scriptlet's events
      */
     const subscribeToCloseWindow = async () => {
-        const closeWindowHandler = (e) => {
+        const closeWindowHandler = () => {
             contentPage.sendMessage({
-                type: 'scriptletCloseWindowHit',
-                data: e,
+                type: 'scriptletCloseWindow',
             });
         };
-        window.addEventListener('scriptlet-close-window-hit', closeWindowHandler);
+        window.addEventListener('scriptlet-close-window', closeWindowHandler);
         dispatchEvent(new Event('subscribed-to-close-window'));
     };
 
