@@ -23,7 +23,6 @@ export const subscribeToScriptlets = (function () {
      */
     const subscribeToCloseWindow = async () => {
         const closeWindowHandler = (e) => {
-            console.log('c-s: handler triggered');
             contentPage.sendMessage({
                 type: 'scriptletCloseWindowHit',
                 data: e,

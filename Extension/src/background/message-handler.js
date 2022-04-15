@@ -271,7 +271,8 @@ const createMessageHandler = () => {
 
         switch (type) {
             case MESSAGE_TYPES.SCRIPTLET_CLOSE_WINDOW_HIT: {
-                debugger;
+                const { tabId } = sender.tab;
+                tabsApi.remove(tabId);
                 break;
             }
             case MESSAGE_TYPES.GET_OPTIONS_DATA: {
