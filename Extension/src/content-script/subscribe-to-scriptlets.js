@@ -17,6 +17,9 @@
 
 import { contentPage } from './content-script';
 
+/**
+ * Script used to subscribe to scriptlets dispatched events.
+ */
 export const subscribeToScriptlets = (function () {
     /**
      * Subscribe to close-window scriptlet's events
