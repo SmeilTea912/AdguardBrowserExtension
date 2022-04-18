@@ -1,16 +1,23 @@
+// TODO refactoring
 export interface FilterMetadata {
     filterId: number,
     groupId: number,
     name: string,
-    description: string,
-    homepage: string,
+    description?: string,
+    homepage?: string,
     version: string,
     // TODO: to one type
     timeUpdated: string | number,
     // TODO: to one type
     expires: string | number,
-    subscriptionUrl: string,
-    tags: number[],
+    rulesCount: boolean,
+    installed: boolean,
+    loaded: boolean,
+    enabled: boolean,
+    removed: boolean,
+
+    subscriptionUrl?: string,
+    tags?: number[],
 
     // custom filter metadata
     customUrl?: string,
@@ -22,11 +29,6 @@ export interface FilterMetadata {
     lastUpdateTime?: number,
     displayNumber?: number,
     languages?: string[],
-    rulesCount?: boolean,
-    installed?: boolean,
-    loaded?: boolean,
-    enabled?: boolean,
-    removed?: boolean,
     tagsDetails?: any,
 }
 

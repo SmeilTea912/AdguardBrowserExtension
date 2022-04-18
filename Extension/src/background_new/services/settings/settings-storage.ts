@@ -10,6 +10,7 @@ import {
     AppearanceTheme,
 } from '../../../common/settings';
 
+// TODO generic Storage class and inherits settings storage from it
 export class SettingsStorage {
     /**
      * Computed values are declared in this object instead constructor,

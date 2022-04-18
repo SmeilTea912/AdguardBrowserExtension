@@ -19,6 +19,7 @@
 import { log } from '../common/log';
 import { NOTIFIER_TYPES } from '../common/constants';
 
+// TODO: reduce the number of events
 /**
  * Simple mediator
  */

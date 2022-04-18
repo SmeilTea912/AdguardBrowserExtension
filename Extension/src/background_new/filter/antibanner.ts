@@ -30,6 +30,7 @@ import { settingsStorage } from '../services/settings/settings-storage';
 import { SettingOption } from '../../common/settings';
 import { collections } from '../utils/collections';
 
+// TODO service decomposition
 /**
  * Creating service that manages our filter rules.
  */
