@@ -18,11 +18,14 @@
 import { contentPage } from './content-script';
 
 /**
- * Script used to subscribe to scriptlets dispatched events.
+ * Script used to subscribe to scriptlets dispatched events
+ * Loaded on content script start to ensure the fastest load
  */
 export const subscribeToScriptlets = (function () {
     /**
-     * Subscribe to close-window scriptlet's events
+     * Subscribe to close-window scriptlet's event
+     * window.close() usage is restricted in Chrome so we use tabs API to do that
+     * https://github.com/AdguardTeam/Scriptlets/issues/170
      */
     const subscribeToCloseWindow = async () => {
         const closeWindowHandler = () => {
@@ -31,6 +34,7 @@ export const subscribeToScriptlets = (function () {
             });
         };
         window.addEventListener('scriptlet-close-window', closeWindowHandler);
+        // Two-way dispatching is required to sync scriptlet & content page
         dispatchEvent(new Event('subscribed-to-close-window'));
     };
 
