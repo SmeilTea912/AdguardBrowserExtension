@@ -34,7 +34,7 @@ export const subscribeToScriptlets = (function () {
             });
         };
         window.addEventListener('scriptlet-close-window', closeWindowHandler);
-        // Two-way dispatching is required to sync scriptlet & content page
+        // Scriptlet is loaded first so we notify it that constent script is ready
         dispatchEvent(new Event('subscribed-to-close-window'));
     };
 
