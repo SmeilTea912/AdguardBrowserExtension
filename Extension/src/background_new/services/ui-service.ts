@@ -8,8 +8,6 @@ import { tsWebExtension } from '../tswebextension';
 import { UrlUtils } from '../utils/url';
 import { SettingsStorage } from './settings/settings-storage';
 import { SettingOption } from '../../common/settings';
-import { listeners } from '../notifier';
-import { application } from '../application';
 
 export class UiService {
     static baseUrl = browser.runtime.getURL('/');
@@ -24,7 +22,6 @@ export class UiService {
         messageHandler.addListener(MessageType.OPEN_ABUSE_TAB, UiService.openAbuseTab);
         messageHandler.addListener(MessageType.OPEN_SITE_REPORT_TAB, UiService.openSiteReportTab);
         messageHandler.addListener(MessageType.OPEN_ASSISTANT, UiService.openAssistant);
-        messageHandler.addListener(MessageType.CHECK_ANTIBANNER_FILTERS_UPDATE, UiService.checkFiltersUpdates);
     }
 
     // listeners
@@ -174,33 +171,5 @@ export class UiService {
         */
 
         return `&stealth.enabled=true&${stealthOptionsString}`;
-    }
-
-    /**
-     * Checks filters updates and returns updated filter
-     * @param {Object[]} [filters] optional list of filters
-     * @param {boolean} [showPopup = true] show update filters popup
-     * @return {Object[]} [filters] list of updated filters
-     */
-    static async checkFiltersUpdates(filters, showPopup = true) {
-        const showPopupEvent = listeners.UPDATE_FILTERS_SHOW_POPUP;
-
-        try {
-            const updatedFilters = await application.checkFiltersUpdates(filters);
-            if (showPopup) {
-                listeners.notifyListeners(showPopupEvent, true, updatedFilters);
-                listeners.notifyListeners(listeners.FILTERS_UPDATE_CHECK_READY, updatedFilters);
-            } else if (updatedFilters && updatedFilters.length > 0) {
-                const updatedFilterStr = updatedFilters.map(f => `Filter ID: ${f.filterId}`).join(', ');
-                console.info(`Filters were auto updated: ${updatedFilterStr}`);
-            }
-            return updatedFilters;
-        } catch (e) {
-            if (showPopup) {
-                listeners.notifyListeners(showPopupEvent, false);
-                listeners.notifyListeners(listeners.FILTERS_UPDATE_CHECK_READY);
-            }
-            return [];
-        }
     }
 }
