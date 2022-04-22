@@ -1,27 +1,29 @@
+/* eslint-disable no-console */
 import browser from 'webextension-polyfill';
-import { ChangeUserSettingMessage, MessageType } from '../../../common/messages';
+import { MessageType } from '../../../common/messages';
 import { messageHandler } from '../../message-handler';
-import { settingsStorage } from './settings-storage';
+import { SettingsStorage } from './settings-storage';
 import { UserAgent } from '../../../common/user-agent';
 import { AntiBannerFiltersId } from '../../../common/constants';
-import { antiBannerService } from '../../filter/antibanner';
 
 import stubData from './settings-stub-data.json';
-import { SettingOption } from '../../../common/settings';
+// import { metadata } from '../filters/metadata';
+import { TsWebExtension, tsWebExtension } from '../../tswebextension';
+import { FiltersService } from '../filters/fitlers-service';
 
 export class SettingsService {
     static async init() {
-        await settingsStorage.init();
+        await SettingsStorage.init();
         messageHandler.addListener(MessageType.GET_OPTIONS_DATA, SettingsService.getOptionsData);
-        messageHandler.addListener(MessageType.CHANGE_USER_SETTING, SettingsService.changeUserSettings);
         messageHandler.addListener(MessageType.RESET_SETTINGS, SettingsService.resetSettings);
+        messageHandler.addListener(MessageType.CHANGE_USER_SETTING, SettingsService.changeUserSettings);
     }
 
     static getOptionsData() {
         return Promise.resolve({
             // TODO: implement filter data extraction
             ...stubData,
-            settings: settingsStorage.getData(),
+            settings: SettingsStorage.getData(),
             appVersion: browser.runtime.getManifest().version,
             environmentOptions: {
                 isChrome: UserAgent.isChrome,
@@ -29,33 +31,27 @@ export class SettingsService {
             constants: {
                 AntiBannerFiltersId,
             },
+            filtersInfo: {
+                rulesCount: tsWebExtension.getRulesCount(),
+            },
+            // filtersMetadata: metadata.data,
             // TODO: implement
             fullscreenUserRulesEditorIsOpen: false,
         });
     }
 
-    static async changeUserSettings({ data }: ChangeUserSettingMessage) {
-        const { key, value } = data;
-        /* TODO
-        // on USE_OPTIMIZED_FILTERS setting change we need to reload filters
-        const onUsedOptimizedFiltersChange = utils.concurrent.debounce(
-            reloadAntiBannerFilters,
-            RELOAD_FILTERS_DEBOUNCE_PERIOD,
-        );
-        */
-        await settingsStorage.set(key, value);
-
-        switch (key) {
-            case SettingOption.USER_FILTER_ENABLED:
-                await antiBannerService.createRequestFilter();
-                break;
-            default:
-                break;
-        }
+    static getConfiguration() {
+        return SettingsStorage.getConfiguration();
     }
 
     static async resetSettings() {
-        await settingsStorage.reset();
+        await SettingsStorage.reset();
         return true;
+    }
+
+    static async changeUserSettings(message) {
+        const { key, value } = message.data;
+        await SettingsStorage.set(key, value);
+        await FiltersService.updateEngineConfig();
     }
 }

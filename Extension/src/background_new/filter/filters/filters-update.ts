@@ -22,7 +22,7 @@ import { log } from '../../../common/log';
 import { BrowserUtils } from '../../utils/browser-utils';
 import { customFilters } from './custom-filters';
 import { SettingOption, DEFAULT_FILTERS_UPDATE_PERIOD } from '../../../common/settings';
-import { settingsStorage } from '../../services/settings/settings-storage';
+import { SettingsStorage } from '../../services/settings/settings-storage';
 import { tsWebExtension } from '../../tswebextension';
 
 /**
@@ -35,7 +35,7 @@ export const filtersUpdate = (() => {
     const UPDATE_FILTERS_DELAY = 5 * 60 * 1000;
 
     // Get filters update period
-    let filtersUpdatePeriod = -1; // settingsStorage.get(SettingOption.FILTERS_UPDATE_PERIOD);
+    let filtersUpdatePeriod = -1; // SettingsStorage.get(SettingOption.FILTERS_UPDATE_PERIOD);
 
     /**
      * Gets expires in sec end return in ms
@@ -149,7 +149,7 @@ export const filtersUpdate = (() => {
             filterRules = await networkService.downloadFilterRules(
                 filter.filterId,
                 forceRemote,
-                settingsStorage.get(SettingOption.USE_OPTIMIZED_FILTERS),
+                SettingsStorage.get(SettingOption.USE_OPTIMIZED_FILTERS),
             );
         } catch (e) {
             log.error(
@@ -364,7 +364,7 @@ export const filtersUpdate = (() => {
      * @private
      */
     function scheduleFiltersUpdate(isFirstRun?: boolean) {
-        filtersUpdatePeriod = settingsStorage.get(SettingOption.FILTERS_UPDATE_PERIOD);
+        filtersUpdatePeriod = SettingsStorage.get(SettingOption.FILTERS_UPDATE_PERIOD);
         // First run delay
         if (isFirstRun) {
             setTimeout(checkAntiBannerFiltersUpdate, UPDATE_FILTERS_DELAY, { forceUpdate: isFirstRun });

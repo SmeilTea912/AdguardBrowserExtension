@@ -1,30 +1,37 @@
+/* eslint-disable no-console */
+import browser from 'webextension-polyfill';
+import { Configuration } from '@adguard/tswebextension';
 import { messageHandler } from './message-handler';
 import { UiService } from './services/ui-service';
 import { PopupService } from './services/popup-service';
 import { SettingsService } from './services/settings/settings-service';
-import { application } from './application';
-import { ANTIBANNER_GROUPS_ID } from '../common/constants';
+import { FiltersService } from './services/filters/fitlers-service';
+import { storage } from './storage';
+import { tsWebExtension } from './tswebextension';
 
 (async () => {
+    // TODO: delete
+    await browser.storage.local.clear();
+    await storage.init();
     await SettingsService.init();
     UiService.init();
     PopupService.init();
 
-    await application.start({
-        async onInstall() {
-            // Process installation
-            /**
-             * Show UI installation page
-             */
-            // UiService.openFiltersDownloadPage();
+    await FiltersService.init();
 
-            // Retrieve filters and install them
-            const filterIds = application.offerFilters();
-            await application.addAndEnableFilters(filterIds);
-            // enable language-specific group by default
-            await application.enableGroup(ANTIBANNER_GROUPS_ID.LANGUAGE_FILTERS_GROUP_ID);
-        },
-    });
+    const settingsConfig = SettingsService.getConfiguration();
+
+    console.log('Start tswebextension...');
+
+    await tsWebExtension.start({
+        filters: [],
+        allowlist: [],
+        userrules: [],
+        verbose: false,
+        ...settingsConfig,
+    } as Configuration);
+
+    console.log('Rules count:', tsWebExtension.getRulesCount());
 
     messageHandler.init();
 })();

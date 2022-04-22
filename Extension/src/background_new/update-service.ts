@@ -22,7 +22,8 @@ import { FiltersState } from './filter/filters/filters-state';
 import { subscriptions } from './filter/filters/subscription';
 import { application } from './application';
 import { utils } from '../background/utils/common';
-import { SettingsStorage, settingsStorage } from './services/settings/settings-storage';
+import { SettingsStorage } from './services/settings/settings-storage';
+import { FiltersStorage } from './services/filters/filters-storage';
 import { SettingOption } from '../common/settings';
 
 /**
@@ -67,10 +68,10 @@ export const applicationUpdateService = (function () {
     function handleDefaultUpdatePeriodSetting() {
         const previousDefaultValue = 48 * 60 * 60 * 1000;
 
-        const currentUpdatePeriod = settingsStorage.get(SettingOption.FILTERS_UPDATE_PERIOD);
+        const currentUpdatePeriod = SettingsStorage.get(SettingOption.FILTERS_UPDATE_PERIOD);
 
         if (currentUpdatePeriod === previousDefaultValue) {
-            settingsStorage.set(
+            SettingsStorage.set(
                 SettingOption.FILTERS_UPDATE_PERIOD,
                 SettingsStorage.defaultSettings[SettingOption.FILTERS_UPDATE_PERIOD],
             );
@@ -96,8 +97,7 @@ export const applicationUpdateService = (function () {
                 return;
             }
 
-            const key = `filterrules_${filterId}.txt`;
-            let { [key]: loadedRulesText } = await browser.storage.local.get(key);
+            let loadedRulesText = FiltersStorage.get(filterId);
             if (!loadedRulesText) {
                 loadedRulesText = [];
             }
@@ -106,7 +106,7 @@ export const applicationUpdateService = (function () {
             const converted = TSUrlFilter.RuleConverter.convertRules(loadedRulesText.join('\n')).split('\n');
 
             log.debug('Saving {0} rules to filter {1}', converted.length, filterId);
-            await browser.storage.local.set({ [`filterrules_${filterId}.txt`]: converted });
+            await FiltersStorage.set(filterId, converted);
         });
 
         await Promise.all(reloadRulesPromises);
@@ -134,7 +134,7 @@ export const applicationUpdateService = (function () {
         filtersIdsToRemove.forEach(filterId => FiltersState.removeFilter(filterId));
 
         const removePromises = filtersIdsToRemove.map(async (filterId) => {
-            await browser.storage.local.remove(`filterrules_${filterId}.txt`);
+            FiltersStorage.remove(filterId);
             log.info(`Filter with id: ${filterId} removed from the storage`);
         });
 

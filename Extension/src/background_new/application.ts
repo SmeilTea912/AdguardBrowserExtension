@@ -40,21 +40,6 @@ export const application = (() => {
         await antiBannerService.start(options);
     };
 
-    messageHandler.addListener(MessageType.ADD_AND_ENABLE_FILTER, (message) => {
-        const { filterId } = message.data;
-
-        return addAndEnableFilters([filterId], { forceRemote: true });
-    });
-
-    messageHandler.addListener(MessageType.DISABLE_ANTIBANNER_FILTER, (message) => {
-        const { filterId, remove } = message.data;
-        if (remove) {
-            uninstallFilters([filterId]);
-        } else {
-            disableFilters([filterId]);
-        }
-    });
-
     messageHandler.addListener(MessageType.REMOVE_ANTIBANNER_FILTER, (message) => {
         const { filterId } = message.data;
         removeFilter(filterId);

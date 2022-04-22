@@ -1,4 +1,5 @@
-import browser from 'webextension-polyfill';
+import { Configuration } from '@adguard/tswebextension';
+import { storage } from '../../storage';
 import { UserAgent } from '../../../common/user-agent';
 import {
     Settings,
@@ -10,7 +11,6 @@ import {
     AppearanceTheme,
 } from '../../../common/settings';
 
-// TODO generic Storage class and inherits settings storage from it
 export class SettingsStorage {
     /**
      * Computed values are declared in this object instead constructor,
@@ -48,46 +48,82 @@ export class SettingsStorage {
         [SettingOption.DISABLE_SHOW_CONTEXT_MENU]: false,
     };
 
-    settings = SettingsStorage.defaultSettings;
+    static async init() {
+        const settings = storage.get(ADGUARD_SETTINGS_KEY) as Partial<Settings>;
 
-    isInit = false;
-
-    private storage = browser.storage.local;
-
-    async init() {
-        const persistentData = await this.storage.get({
-            [ADGUARD_SETTINGS_KEY]: SettingsStorage.defaultSettings,
-        });
-
-        this.settings = persistentData[ADGUARD_SETTINGS_KEY];
-        await this.storage.set({ [ADGUARD_SETTINGS_KEY]: this.settings });
-        this.isInit = true;
-    }
-
-    async set<T extends SettingOption>(key: T, value: Settings[T]): Promise<void> {
-        this.settings[key] = value;
-        await this.storage.set({ [ADGUARD_SETTINGS_KEY]: this.settings });
-    }
-
-    get<T extends SettingOption>(key: T): Settings[T] {
-        if (!this.isInit) {
-            throw new Error('The storage is not initialized');
+        /**
+         * set defaults on first run
+         */
+        if (!settings) {
+            await storage.set(ADGUARD_SETTINGS_KEY, SettingsStorage.defaultSettings);
+            return;
         }
 
-        return this.settings[key];
+        /**
+         * check settings fields before initialization
+         */
+
+        const keys = Object.keys(SettingsStorage.defaultSettings);
+
+        for (let i = 0; i < keys.length; i += 1) {
+            const key = keys[i];
+
+            if (!settings[key]) {
+                settings[key] = SettingsStorage.defaultSettings[key];
+            }
+        }
+
+        await storage.set(ADGUARD_SETTINGS_KEY, settings);
     }
 
-    getData() {
+    static async set<T extends SettingOption>(key: T, value: Settings[T]): Promise<void> {
+        const settings = storage.get(ADGUARD_SETTINGS_KEY);
+
+        settings[key] = value;
+
+        await storage.set(ADGUARD_SETTINGS_KEY, settings);
+    }
+
+    static get<T extends SettingOption>(key: T): Settings[T] {
+        const settings = storage.get(ADGUARD_SETTINGS_KEY);
+
+        return settings[key] as Settings[T];
+    }
+
+    static getData() {
+        const settings = storage.get(ADGUARD_SETTINGS_KEY);
+
         return {
             names: SettingOption,
             defaultValues: SettingsStorage.defaultSettings,
-            values: this.settings,
+            values: settings,
         };
     }
 
-    async reset() {
-        this.settings = SettingsStorage.defaultSettings;
-        await this.storage.set({ [ADGUARD_SETTINGS_KEY]: this.settings });
+    static async reset() {
+        await storage.set(ADGUARD_SETTINGS_KEY, SettingsStorage.defaultSettings);
+    }
+
+    static getConfiguration(): Partial<Configuration> {
+        const settings = storage.get(ADGUARD_SETTINGS_KEY);
+
+        return {
+            settings: {
+                collectStats: !settings[SettingOption.DISABLE_COLLECT_HITS],
+                allowlistInverted: !settings[SettingOption.DEFAULT_ALLOWLIST_MODE],
+                stealth: {
+                    blockChromeClientData: settings[SettingOption.BLOCK_CHROME_CLIENT_DATA],
+                    hideReferrer: settings[SettingOption.HIDE_REFERRER],
+                    hideSearchQueries: settings[SettingOption.HIDE_SEARCH_QUERIES],
+                    sendDoNotTrack: settings[SettingOption.SEND_DO_NOT_TRACK],
+                    blockWebRTC: settings[SettingOption.BLOCK_WEBRTC],
+                    selfDestructThirdPartyCookies: settings[SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES],
+                    selfDestructThirdPartyCookiesTime: settings[SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES_TIME],
+                    selfDestructFirstPartyCookies: settings[SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES],
+                    selfDestructFirstPartyCookiesTime: settings[SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES_TIME],
+                },
+            },
+        };
     }
 
     private static isPromoInfoDisabled(): boolean {
@@ -105,5 +141,3 @@ export class SettingsStorage {
         return result.join('') + suffix;
     }
 }
-
-export const settingsStorage = new SettingsStorage();

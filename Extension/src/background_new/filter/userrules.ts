@@ -23,6 +23,7 @@ import * as TSUrlFilter from '@adguard/tsurlfilter';
 import { listeners } from '../notifier';
 import { log } from '../../common/log';
 import { AntiBannerFiltersId } from '../../common/constants';
+import { FiltersStorage } from '../services/filters/filters-storage';
 
 /**
  * Class for manage user rules
@@ -71,8 +72,7 @@ export const userrules = (function () {
      * Loads user rules text from storage
      */
     const getUserRulesText = async function () {
-        const key = `filterrules_${AntiBannerFiltersId.USER_FILTER_ID}.txt`;
-        const { [key]: rulesText } = await browser.storage.local.get(key);
+        const rulesText = FiltersStorage.get(AntiBannerFiltersId.USER_FILTER_ID);
         const content = (rulesText || []).join('\n');
         return content;
     };

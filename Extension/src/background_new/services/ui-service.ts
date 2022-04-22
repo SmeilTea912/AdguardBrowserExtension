@@ -6,7 +6,7 @@ import { UserAgent } from '../../common/user-agent';
 import { TabsApi } from '../extension-api/tabs';
 import { tsWebExtension } from '../tswebextension';
 import { UrlUtils } from '../utils/url';
-import { settingsStorage } from './settings/settings-storage';
+import { SettingsStorage } from './settings/settings-storage';
 import { SettingOption } from '../../common/settings';
 import { listeners } from '../notifier';
 import { application } from '../application';
@@ -103,13 +103,13 @@ export class UiService {
     }
 
     static getBrowserSecurityString(): string {
-        const isEnabled = !settingsStorage.get(SettingOption.DISABLE_SAFEBROWSING);
+        const isEnabled = !SettingsStorage.get(SettingOption.DISABLE_SAFEBROWSING);
         return `&browsing_security.enabled=${isEnabled}`;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     static getStealthString(filterIds: number[]): string {
-        const stealthEnabled = !settingsStorage.get(SettingOption.DISABLE_STEALTH_MODE);
+        const stealthEnabled = !SettingsStorage.get(SettingOption.DISABLE_STEALTH_MODE);
 
         if (!stealthEnabled) {
             return '&stealth.enabled=false';
@@ -149,7 +149,7 @@ export class UiService {
 
         const stealthOptionsString = stealthOptions.map((option) => {
             const { queryKey, settingKey, settingValueKey } = option;
-            const setting = settingsStorage.get(settingKey);
+            const setting = SettingsStorage.get(settingKey);
             let settingString: string;
             if (!setting) {
                 return '';
@@ -157,7 +157,7 @@ export class UiService {
             if (!settingValueKey) {
                 settingString = setting.toString();
             } else {
-                settingString = settingsStorage.get(settingValueKey).toString();
+                settingString = SettingsStorage.get(settingValueKey).toString();
             }
             return `stealth.${queryKey}=${encodeURIComponent(settingString)}`;
         })

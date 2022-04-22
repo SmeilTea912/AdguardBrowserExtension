@@ -13,10 +13,10 @@ export enum SettingOption {
 
     // filters metadata
 
-    METADATA_STORAGE_KEY = 'filters-metadata',
-    I18N_METADATA_STORAGE_KEY = 'filters-i18n-metadata',
+    METADATA = 'filters-metadata',
+    I18N_METADATA = 'filters-i18n-metadata',
 
-    CUSTOM_FILTERS_STORAGE_KEY = 'custom_filters',
+    CUSTOM_FILTERS = 'custom_filters',
 
     // user settings
 
@@ -103,10 +103,10 @@ export type Settings = {
     [SettingOption.FILTERS_VERSION_PROP]?: string,
     [SettingOption.GROUPS_STATE_PROP]?: string,
 
-    [SettingOption.METADATA_STORAGE_KEY]?: string,
-    [SettingOption.I18N_METADATA_STORAGE_KEY]?: string,
+    [SettingOption.METADATA]?: string,
+    [SettingOption.I18N_METADATA]?: string,
 
-    [SettingOption.CUSTOM_FILTERS_STORAGE_KEY]?: string,
+    [SettingOption.CUSTOM_FILTERS]?: string,
 };
 
 // TODO: use setting import validation in settings service

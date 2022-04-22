@@ -41,44 +41,6 @@ export class NetworkService {
     private loadingSubscriptions = {};
 
     /**
-     * Downloads metadata from backend
-     */
-    public async downloadMetadataFromDownloader() {
-        const response = await NetworkService.executeRequestAsync(this.settings.filtersMetadataUrl, 'application/json');
-        if (!response?.responseText) {
-            throw new Error(`Empty response: ${response}`);
-        }
-
-        const metadata = NetworkService.parseJson(response.responseText);
-        if (!metadata) {
-            throw new Error(`Invalid response: ${response}`);
-        }
-
-        return metadata;
-    }
-
-    /**
-     * Downloads i18n metadata from backend
-     */
-    public async downloadI18nMetadataFromDownloader() {
-        const response = await NetworkService.executeRequestAsync(
-            this.settings.filtersI18nMetadataUrl,
-            'application/json',
-        );
-
-        if (!response?.responseText) {
-            throw new Error(`Empty response: ${response}`);
-        }
-
-        const metadata = NetworkService.parseJson(response.responseText);
-        if (!metadata) {
-            throw new Error(`Invalid response: ${response}`);
-        }
-
-        return metadata;
-    }
-
-    /**
      * Downloads filter rules by filter ID
      *
      * @param filterId              Filter identifier
@@ -166,7 +128,7 @@ export class NetworkService {
      * Loads filter groups metadata from local file
      * @returns {Promise}
      */
-    public async getLocalFiltersI18Metadata() {
+    public async getLocalFiltersI18nMetadata() {
         const url = browser.runtime.getURL(`${this.settings.localFiltersFolder}/filters_i18n.json`);
 
         let response;

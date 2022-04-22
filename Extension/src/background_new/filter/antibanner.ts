@@ -24,11 +24,13 @@ import { log } from '../../common/log';
 import { filtersUpdate } from './filters/filters-update';
 import { customFilters } from './filters/custom-filters';
 import { userrules } from './userrules';
-import { tsWebExtension, mergeConfig } from '../tswebextension';
+import { tsWebExtension } from '../tswebextension';
 import { AntiBannerFiltersId } from '../../common/constants';
-import { settingsStorage } from '../services/settings/settings-storage';
+import { SettingsStorage } from '../services/settings/settings-storage';
 import { SettingOption } from '../../common/settings';
 import { collections } from '../utils/collections';
+import { FiltersStorage } from '../services/filters/filters-storage';
+import { Filter } from '../../pages/options/components/Filters/Filter';
 
 // TODO service decomposition
 /**
@@ -384,31 +386,31 @@ export const antiBannerService = (() => {
                     ...config,
                     verbose: false,
                     settings: {
-                        collectStats: !settingsStorage.get(SettingOption.DISABLE_COLLECT_HITS),
-                        allowlistInverted: !settingsStorage.get(SettingOption.DEFAULT_ALLOWLIST_MODE),
+                        collectStats: !SettingsStorage.get(SettingOption.DISABLE_COLLECT_HITS),
+                        allowlistInverted: !SettingsStorage.get(SettingOption.DEFAULT_ALLOWLIST_MODE),
                         stealth: {
-                            blockChromeClientData: settingsStorage.get(SettingOption.BLOCK_CHROME_CLIENT_DATA),
-                            hideReferrer: settingsStorage.get(SettingOption.HIDE_REFERRER),
-                            hideSearchQueries: settingsStorage.get(SettingOption.HIDE_SEARCH_QUERIES),
-                            sendDoNotTrack: settingsStorage.get(SettingOption.SEND_DO_NOT_TRACK),
-                            blockWebRTC: settingsStorage.get(SettingOption.BLOCK_WEBRTC),
-                            selfDestructThirdPartyCookies: settingsStorage.get(
+                            blockChromeClientData: SettingsStorage.get(SettingOption.BLOCK_CHROME_CLIENT_DATA),
+                            hideReferrer: SettingsStorage.get(SettingOption.HIDE_REFERRER),
+                            hideSearchQueries: SettingsStorage.get(SettingOption.HIDE_SEARCH_QUERIES),
+                            sendDoNotTrack: SettingsStorage.get(SettingOption.SEND_DO_NOT_TRACK),
+                            blockWebRTC: SettingsStorage.get(SettingOption.BLOCK_WEBRTC),
+                            selfDestructThirdPartyCookies: SettingsStorage.get(
                                 SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES,
                             ),
-                            selfDestructThirdPartyCookiesTime: settingsStorage.get(
+                            selfDestructThirdPartyCookiesTime: SettingsStorage.get(
                                 SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES_TIME,
                             ),
-                            selfDestructFirstPartyCookies: settingsStorage.get(
+                            selfDestructFirstPartyCookies: SettingsStorage.get(
                                 SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES,
                             ),
-                            selfDestructFirstPartyCookiesTime: settingsStorage.get(
+                            selfDestructFirstPartyCookiesTime: SettingsStorage.get(
                                 SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES_TIME,
                             ),
                         },
                     },
                 });
             } else {
-                await tsWebExtension.configure(mergeConfig(tsWebExtension.configuration, config));
+                await tsWebExtension.configure(tsWebExtension.configuration);
             }
 
             requestFilterInitialized();
@@ -451,8 +453,7 @@ export const antiBannerService = (() => {
          * @returns {*} Deferred object
          */
         const loadFilterRulesFromStorage = async (filterId: number, rulesFilterMap) => {
-            const key = `filterrules_${filterId}.txt`;
-            let { [key]: rulesText } = await browser.storage.local.get(key);
+            let rulesText = FiltersStorage.get(filterId);
             if (rulesText) {
                 if (Number(filterId) === AntiBannerFiltersId.USER_FILTER_ID) {
                     rulesText = userrules.convertRules(rulesText);
@@ -476,7 +477,7 @@ export const antiBannerService = (() => {
                 }
             }
 
-            if (settingsStorage.get(SettingOption.USER_FILTER_ENABLED)) {
+            if (SettingsStorage.get(SettingOption.USER_FILTER_ENABLED)) {
                 // get user filter rules from storage
                 promises.push(loadFilterRulesFromStorage(AntiBannerFiltersId.USER_FILTER_ID, rulesFilterMap));
             }
@@ -595,12 +596,11 @@ export const antiBannerService = (() => {
      * @private
      */
     async function processSaveFilterRulesToStorageEvents(filterId, events) {
-        const key = `filterrules_${filterId}.txt`;
-        let { [key]: loadedRulesText } = await browser.storage.local.get(key);
+        let loadedRuleText = FiltersStorage.get(filterId);
 
         for (let i = 0; i < events.length; i += 1) {
-            if (!loadedRulesText) {
-                loadedRulesText = [];
+            if (!loadedRuleText) {
+                loadedRuleText = [];
             }
 
             const event = events[i];
@@ -612,33 +612,33 @@ export const antiBannerService = (() => {
                 case listeners.ADD_RULES:
                     // ditch empty first editor line while adding rule
                     // AG-10727
-                    loadedRulesText = loadedRulesText.length === 1 && loadedRulesText[0] === ''
+                    loadedRuleText = loadedRuleText.length === 1 && loadedRuleText[0] === ''
                         ? eventRules
-                        : loadedRulesText.concat(eventRules);
+                        : loadedRuleText.concat(eventRules);
                     log.debug('Add {0} rules to filter {1}', eventRules.length, filterId);
                     break;
                 case listeners.REMOVE_RULE: {
                     const actionRule = eventRules[0];
-                    collections.removeAll(loadedRulesText, actionRule);
+                    collections.removeAll(loadedRuleText, actionRule);
                     log.debug('Remove {0} rule from filter {1}', actionRule, filterId);
                     break;
                 }
                 case listeners.UPDATE_FILTER_RULES:
-                    loadedRulesText = eventRules;
+                    loadedRuleText = eventRules;
                     log.debug('Update filter {0} rules count to {1}', filterId, eventRules.length);
                     break;
             }
         }
 
-        let rulesTextToSave = loadedRulesText;
+        let rulesTextToSave = loadedRuleText;
         if (Number(filterId) !== AntiBannerFiltersId.USER_FILTER_ID) {
-            log.debug('Converting {0} rules for filter {1}', loadedRulesText.length, filterId);
-            rulesTextToSave = RuleConverter.convertRules(loadedRulesText.join('\n')).split('\n');
+            log.debug('Converting {0} rules for filter {1}', loadedRuleText.length, filterId);
+            rulesTextToSave = RuleConverter.convertRules(loadedRuleText.join('\n')).split('\n');
         }
 
         log.debug('Saving {0} rules to filter {1}', rulesTextToSave.length, filterId);
 
-        await browser.storage.local.set({ [`filterrules_${filterId}.txt`]: rulesTextToSave });
+        await FiltersStorage.set(filterId, rulesTextToSave);
         // notify that user rules were saved, to update saving button on options page
         if (Number(filterId) === AntiBannerFiltersId.USER_FILTER_ID) {
             listeners.notifyListeners(listeners.USER_FILTER_UPDATED);

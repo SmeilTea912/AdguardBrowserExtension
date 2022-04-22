@@ -15,7 +15,7 @@
  * along with Adguard Browser Extension. If not, see <http://www.gnu.org/licenses/>.
  */
 import { listeners } from '../../notifier';
-import { settingsStorage } from '../../services/settings/settings-storage';
+import { SettingsStorage } from '../../services/settings/settings-storage';
 import { SettingOption } from '../../../common/settings';
 import { log } from '../../../common/log';
 
@@ -70,7 +70,7 @@ export class FiltersState {
     static getFiltersVersion(): StorageData<FilterVersion> {
         let filters = Object.create(null);
         try {
-            const json = settingsStorage.get(SettingOption.FILTERS_VERSION_PROP);
+            const json = SettingsStorage.get(SettingOption.FILTERS_VERSION_PROP);
             if (json) {
                 filters = JSON.parse(json);
             }
@@ -86,7 +86,7 @@ export class FiltersState {
     static getFiltersState(): StorageData<FilterState> {
         let filters = Object.create(null);
         try {
-            const json = settingsStorage.get(SettingOption.FILTERS_STATE_PROP);
+            const json = SettingsStorage.get(SettingOption.FILTERS_STATE_PROP);
             if (json) {
                 filters = JSON.parse(json);
             }
@@ -102,7 +102,7 @@ export class FiltersState {
     static getGroupsState(): StorageData<GroupState> {
         let groups = Object.create(null);
         try {
-            const json = settingsStorage.get(SettingOption.GROUPS_STATE_PROP);
+            const json = SettingsStorage.get(SettingOption.GROUPS_STATE_PROP);
             if (json) {
                 groups = JSON.parse(json);
             }
@@ -126,7 +126,7 @@ export class FiltersState {
             expires: filter.expires,
         };
 
-        settingsStorage.set(SettingOption.FILTERS_VERSION_PROP, JSON.stringify(filters));
+        SettingsStorage.set(SettingOption.FILTERS_VERSION_PROP, JSON.stringify(filters));
     }
 
     /**
@@ -141,13 +141,13 @@ export class FiltersState {
             enabled: filter.enabled,
             installed: filter.installed,
         };
-        settingsStorage.set(SettingOption.FILTERS_STATE_PROP, JSON.stringify(filters));
+        SettingsStorage.set(SettingOption.FILTERS_STATE_PROP, JSON.stringify(filters));
     }
 
     static removeFilter(filterId: number) {
         const filters = FiltersState.getFiltersState();
         delete filters[filterId];
-        settingsStorage.set(SettingOption.FILTERS_STATE_PROP, JSON.stringify(filters));
+        SettingsStorage.set(SettingOption.FILTERS_STATE_PROP, JSON.stringify(filters));
     }
 
     /**
@@ -166,7 +166,7 @@ export class FiltersState {
             };
         }
 
-        settingsStorage.set(SettingOption.GROUPS_STATE_PROP, JSON.stringify(groups));
+        SettingsStorage.set(SettingOption.GROUPS_STATE_PROP, JSON.stringify(groups));
     }
 }
 

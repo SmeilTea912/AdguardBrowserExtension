@@ -29,7 +29,7 @@ import { MetadataFactory } from './metadata-factory';
 import { metadataCache } from './metadata-cache';
 import { customFilters } from './custom-filters';
 import { SettingOption } from '../../../common/settings';
-import { settingsStorage } from '../../services/settings/settings-storage';
+import { SettingsStorage } from '../../services/settings/settings-storage';
 import { UserAgent } from '../../../common/user-agent';
 
 /**
@@ -156,7 +156,7 @@ export const subscriptions = (() => {
         let metadata;
 
         // Load from storage first
-        const data = settingsStorage.get(SettingOption.METADATA_STORAGE_KEY);
+        const data = SettingsStorage.get(SettingOption.METADATA_STORAGE_KEY);
         if (data) {
             metadata = JSON.parse(data);
         } else {
@@ -174,7 +174,7 @@ export const subscriptions = (() => {
       */
     const reloadMetadataFromBackend = async () => {
         const metadata = await networkService.downloadMetadataFromBackend();
-        settingsStorage.set(SettingOption.METADATA_STORAGE_KEY, JSON.stringify(metadata));
+        SettingsStorage.set(SettingOption.METADATA_STORAGE_KEY, JSON.stringify(metadata));
 
         saveMetadata(metadata);
 
@@ -299,7 +299,7 @@ export const subscriptions = (() => {
         let metadata;
 
         // Load from storage first
-        const data = settingsStorage.get(SettingOption.I18N_METADATA_STORAGE_KEY);
+        const data = SettingsStorage.get(SettingOption.I18N_METADATA_STORAGE_KEY);
         if (data) {
             metadata = JSON.parse(data);
         } else {
@@ -317,7 +317,7 @@ export const subscriptions = (() => {
       */
     const reloadI18nMetadataFromBackend = async () => {
         const metadata = await networkService.downloadI18nMetadataFromBackend();
-        settingsStorage.set(SettingOption.I18N_METADATA_STORAGE_KEY, JSON.stringify(metadata));
+        SettingsStorage.set(SettingOption.I18N_METADATA_STORAGE_KEY, JSON.stringify(metadata));
 
         saveI18nMetadata(metadata);
 
