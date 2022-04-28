@@ -6,10 +6,8 @@ import { SettingsStorage } from './settings-storage';
 import { UserAgent } from '../../../common/user-agent';
 import { AntiBannerFiltersId } from '../../../common/constants';
 
-import stubData from './settings-stub-data.json';
-// import { metadata } from '../filters/metadata';
-import { TsWebExtension, tsWebExtension } from '../../tswebextension';
-import { FiltersService } from '../filters/fitlers-service';
+import { Engine } from '../../engine';
+import { Categories } from '../filters/filters-categories';
 
 export class SettingsService {
     static async init() {
@@ -21,8 +19,6 @@ export class SettingsService {
 
     static getOptionsData() {
         return Promise.resolve({
-            // TODO: implement filter data extraction
-            ...stubData,
             settings: SettingsStorage.getData(),
             appVersion: browser.runtime.getManifest().version,
             environmentOptions: {
@@ -32,10 +28,9 @@ export class SettingsService {
                 AntiBannerFiltersId,
             },
             filtersInfo: {
-                rulesCount: tsWebExtension.getRulesCount(),
+                rulesCount: Engine.api.getRulesCount(),
             },
-            // filtersMetadata: metadata.data,
-            // TODO: implement
+            filtersMetadata: Categories.getFiltersMetadata(),
             fullscreenUserRulesEditorIsOpen: false,
         });
     }
@@ -52,6 +47,6 @@ export class SettingsService {
     static async changeUserSettings(message) {
         const { key, value } = message.data;
         await SettingsStorage.set(key, value);
-        await FiltersService.updateEngineConfig();
+        await Engine.update();
     }
 }

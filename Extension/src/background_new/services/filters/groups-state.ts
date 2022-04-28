@@ -1,27 +1,36 @@
 /* eslint-disable no-console */
 import { SettingOption } from '../../../common/settings';
 import { SettingsStorage } from '../settings/settings-storage';
+import { metadata } from './metadata';
 
 export type GroupStateData = {
     enabled: boolean;
 };
 
 export class GroupsState {
+    static defaultState = {
+        enabled: false,
+    };
+
     data: Record<number, GroupStateData> = {};
 
     async init() {
-        const data = SettingsStorage.get(SettingOption.GROUPS_STATE_PROP);
+        const groupsMetadata = metadata.getGroups();
 
-        if (!data) {
-            return;
+        const storageData = SettingsStorage.get(SettingOption.GROUPS_STATE_PROP);
+
+        const data = storageData ? JSON.parse(storageData) : {};
+
+        for (let i = 0; i < groupsMetadata.length; i += 1) {
+            const { groupId } = groupsMetadata[i] as { groupId: number };
+
+            // TODO install state
+            data[groupId] = data[groupId] || GroupsState.defaultState;
         }
 
-        try {
-            this.data = JSON.parse(data);
-        } catch (e) {
-            // eslint-disable-next-line no-console
-            console.error(e);
-        }
+        this.data = data;
+
+        this.updateStorageData();
     }
 
     get(groupId: number): GroupStateData | undefined {

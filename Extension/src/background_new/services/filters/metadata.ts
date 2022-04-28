@@ -89,12 +89,24 @@ export class Metadata {
         }
     }
 
+    getFilters() {
+        return this.data.filters;
+    }
+
     getFilter(filterId: number) {
         return this.data.filters.find(el => el.filterId === filterId);
     }
 
+    getGroups() {
+        return this.data.groups;
+    }
+
     getGroup(groupId: number) {
         return this.data.groups.find(el => el.groupId === groupId);
+    }
+
+    getTags() {
+        return this.data.tags;
     }
 
     getTag(tagId: number) {

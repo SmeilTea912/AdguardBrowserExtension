@@ -1,4 +1,3 @@
-import { Configuration } from '@adguard/tswebextension';
 import { storage } from '../../storage';
 import { UserAgent } from '../../../common/user-agent';
 import {
@@ -104,24 +103,22 @@ export class SettingsStorage {
         await storage.set(ADGUARD_SETTINGS_KEY, SettingsStorage.defaultSettings);
     }
 
-    static getConfiguration(): Partial<Configuration> {
-        const settings = storage.get(ADGUARD_SETTINGS_KEY);
+    static getConfiguration() {
+        const settings = storage.get(ADGUARD_SETTINGS_KEY) as Settings;
 
         return {
-            settings: {
-                collectStats: !settings[SettingOption.DISABLE_COLLECT_HITS],
-                allowlistInverted: !settings[SettingOption.DEFAULT_ALLOWLIST_MODE],
-                stealth: {
-                    blockChromeClientData: settings[SettingOption.BLOCK_CHROME_CLIENT_DATA],
-                    hideReferrer: settings[SettingOption.HIDE_REFERRER],
-                    hideSearchQueries: settings[SettingOption.HIDE_SEARCH_QUERIES],
-                    sendDoNotTrack: settings[SettingOption.SEND_DO_NOT_TRACK],
-                    blockWebRTC: settings[SettingOption.BLOCK_WEBRTC],
-                    selfDestructThirdPartyCookies: settings[SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES],
-                    selfDestructThirdPartyCookiesTime: settings[SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES_TIME],
-                    selfDestructFirstPartyCookies: settings[SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES],
-                    selfDestructFirstPartyCookiesTime: settings[SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES_TIME],
-                },
+            collectStats: !settings[SettingOption.DISABLE_COLLECT_HITS],
+            allowlistInverted: !settings[SettingOption.DEFAULT_ALLOWLIST_MODE],
+            stealth: {
+                blockChromeClientData: settings[SettingOption.BLOCK_CHROME_CLIENT_DATA],
+                hideReferrer: settings[SettingOption.HIDE_REFERRER],
+                hideSearchQueries: settings[SettingOption.HIDE_SEARCH_QUERIES],
+                sendDoNotTrack: settings[SettingOption.SEND_DO_NOT_TRACK],
+                blockWebRTC: settings[SettingOption.BLOCK_WEBRTC],
+                selfDestructThirdPartyCookies: settings[SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES],
+                selfDestructThirdPartyCookiesTime: settings[SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES_TIME],
+                selfDestructFirstPartyCookies: settings[SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES],
+                selfDestructFirstPartyCookiesTime: settings[SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES_TIME],
             },
         };
     }

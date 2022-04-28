@@ -1,6 +1,5 @@
 import browser from 'webextension-polyfill';
 
-// TODO generic Storage class and inherits settings storage from it
 export class Storage {
     isInit = false;
 

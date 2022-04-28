@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { SettingOption } from '../../../common/settings';
 import { SettingsStorage } from '../settings/settings-storage';
+import { metadata } from './metadata';
 
 export type FilterStateData = {
     enabled: boolean;
@@ -9,21 +10,31 @@ export type FilterStateData = {
 };
 
 export class FiltersState {
+    static defaultState = {
+        enabled: false,
+        installed: false,
+        loaded: false,
+    };
+
     data: Record<number, FilterStateData> = {};
 
     async init() {
-        const data = SettingsStorage.get(SettingOption.FILTERS_STATE_PROP);
+        const filtersMetadata = metadata.getFilters();
 
-        if (!data) {
-            return;
+        const storageData = SettingsStorage.get(SettingOption.FILTERS_STATE_PROP);
+
+        const data = storageData ? JSON.parse(storageData) : {};
+
+        for (let i = 0; i < filtersMetadata.length; i += 1) {
+            const { filterId } = filtersMetadata[i] as { filterId: number };
+
+            // TODO install state
+            data[filterId] = data[filterId] || FiltersState.defaultState;
         }
 
-        try {
-            this.data = JSON.parse(data);
-        } catch (e) {
-            // eslint-disable-next-line no-console
-            console.error(e);
-        }
+        this.data = data;
+
+        this.updateStorageData();
     }
 
     get(filterId: number): FilterStateData | undefined {

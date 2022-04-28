@@ -1,9 +1,5 @@
 import browser, { Events, Runtime } from 'webextension-polyfill';
-import {
-    tsWebExtensionMessageHandler,
-    TS_WEB_EXTENSION_MESSAGE_HANDLER_NAME,
-    TsWebExtensionMessage,
-} from './tswebextension';
+import { Engine, EngineMessage } from './engine';
 
 import {
     MessageType,
@@ -34,9 +30,9 @@ export class MessageHandler {
   }
 
   // TODO: runtime validation
-  private handleMessage<T extends Message | TsWebExtensionMessage>(message: T, sender: Runtime.MessageSender) {
-      if (message.handlerName === TS_WEB_EXTENSION_MESSAGE_HANDLER_NAME) {
-          return tsWebExtensionMessageHandler(message, sender);
+  private handleMessage<T extends Message | EngineMessage>(message: T, sender: Runtime.MessageSender) {
+      if (message.handlerName === Engine.messageHandlerName) {
+          return Engine.messageHandler(message, sender);
       }
 
       if (message.handlerName === APP_MESSAGE_HANDLER_NAME) {

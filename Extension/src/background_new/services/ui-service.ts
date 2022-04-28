@@ -4,7 +4,7 @@ import { messageHandler } from '../message-handler';
 import { MessageType, OpenAbuseTabMessage, OpenSiteReportTabMessage } from '../../common/messages';
 import { UserAgent } from '../../common/user-agent';
 import { TabsApi } from '../extension-api/tabs';
-import { tsWebExtension } from '../tswebextension';
+import { Engine } from '../engine';
 import { UrlUtils } from '../utils/url';
 import { SettingsStorage } from './settings/settings-storage';
 import { SettingOption } from '../../common/settings';
@@ -57,7 +57,7 @@ export class UiService {
             browserName = 'Other';
         }
 
-        const filterIds = tsWebExtension.configuration.filters.map(filter => filter.filterId);
+        const filterIds = Engine.api.configuration.filters.map(filter => filter.filterId);
 
         await browser.tabs.create({
             url: `https://reports.adguard.com/new_issue.html?product_type=Ext&product_version=${
@@ -90,7 +90,7 @@ export class UiService {
 
     static async openAssistant(): Promise<void> {
         const activeTab = await TabsApi.findOne({ active: true });
-        tsWebExtension.openAssistant(activeTab.id);
+        Engine.api.openAssistant(activeTab.id);
     }
 
     // helpers
