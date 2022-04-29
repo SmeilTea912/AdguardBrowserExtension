@@ -7,6 +7,7 @@ import { FiltersService } from './services/filters/fitlers-service';
 import { eventService } from './services/event-service';
 import { storage } from './storage';
 import { Engine } from './engine';
+import { safebrowsingService } from './services/safebrowsing-service';
 
 (async () => {
     await storage.init();
@@ -18,4 +19,5 @@ import { Engine } from './engine';
 
     messageHandler.init();
     eventService.init();
+    safebrowsingService.init();
 })();

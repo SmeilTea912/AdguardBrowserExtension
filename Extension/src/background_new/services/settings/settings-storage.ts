@@ -89,6 +89,14 @@ export class SettingsStorage {
         return settings[key] as Settings[T];
     }
 
+    static async delete<T extends SettingOption>(key: T) {
+        const settings = storage.get(ADGUARD_SETTINGS_KEY);
+
+        delete settings[key];
+
+        await storage.set(ADGUARD_SETTINGS_KEY, settings);
+    }
+
     static getData() {
         const settings = storage.get(ADGUARD_SETTINGS_KEY);
 
