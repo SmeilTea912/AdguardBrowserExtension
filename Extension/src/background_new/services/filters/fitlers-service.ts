@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 /* eslint-disable class-methods-use-this */
+import browser from 'webextension-polyfill';
 import { filtersState } from './filters-state';
+import { filtersVersion } from './filters-version';
 import { groupsState } from './groups-state';
 import { metadata } from './metadata';
 import { i18nMetadata } from './i18n-metadata';
@@ -14,21 +16,28 @@ import {
 import { networkService } from '../network/network-service';
 import { messageHandler } from '../../message-handler';
 import { Engine } from '../../engine';
+import { log } from '../../../common/log';
+import { listeners } from '../../notifier';
 
 export class FiltersService {
     static async init() {
         await metadata.init();
         await i18nMetadata.init();
-        await filtersState.init();
-        await groupsState.init();
+        filtersState.init();
+        filtersVersion.init();
+        groupsState.init();
 
         // TODO: debounce message events
         messageHandler.addListener(MessageType.ADD_AND_ENABLE_FILTER, FiltersService.onFilterEnable);
         messageHandler.addListener(MessageType.DISABLE_ANTIBANNER_FILTER, FiltersService.onFilterDisable);
         messageHandler.addListener(MessageType.ENABLE_FILTERS_GROUP, FiltersService.onGroupEnable);
         messageHandler.addListener(MessageType.DISABLE_FILTERS_GROUP, FiltersService.onGroupDisable);
+        messageHandler.addListener(MessageType.GET_USER_RULES, FiltersService.getUserRules);
+        messageHandler.addListener(MessageType.GET_USER_RULES_EDITOR_DATA, FiltersService.getUserRulesEditorData);
         messageHandler.addListener(MessageType.SAVE_USER_RULES, FiltersService.onSaveUserRules);
+        messageHandler.addListener(MessageType.GET_ALLOWLIST_DOMAINS, FiltersService.getAllowlistDomains);
         messageHandler.addListener(MessageType.SAVE_ALLOWLIST_DOMAINS, FiltersService.onSaveAllowlistDomains);
+        messageHandler.addListener(MessageType.CHECK_ANTIBANNER_FILTERS_UPDATE, FiltersService.onFiltersUpdate);
     }
 
     static async onFilterEnable(message: AddAndEnableFilterMessage) {
@@ -59,6 +68,22 @@ export class FiltersService {
         await Engine.update();
     }
 
+    static async getUserRules() {
+        const rulesText = FiltersStorage.get(AntiBannerFiltersId.USER_FILTER_ID);
+        const content = (rulesText || []).join('\n');
+        return { content, appVersion: browser.runtime.getManifest().version };
+    }
+
+    static async getUserRulesEditorData() {
+        const rulesText = FiltersStorage.get(AntiBannerFiltersId.USER_FILTER_ID);
+        const content = (rulesText || []).join('\n');
+        return {
+            userRules: content,
+            // TODO
+            // settings: settings.getAllSettings(),
+        };
+    }
+
     static async onSaveUserRules(message: any) {
         const { value } = message.data;
 
@@ -72,6 +97,14 @@ export class FiltersService {
         });
 
         await Engine.update();
+
+        listeners.notifyListeners(listeners.UPDATE_ALLOWLIST_FILTER_RULES);
+    }
+
+    static async getAllowlistDomains() {
+        const text = FiltersStorage.get(AntiBannerFiltersId.ALLOWLIST_FILTER_ID);
+        const content = (text || []).join('\n');
+        return { content, appVersion: browser.runtime.getManifest().version };
     }
 
     static async onSaveAllowlistDomains(message: any) {
@@ -87,12 +120,39 @@ export class FiltersService {
         });
 
         await Engine.update();
+
+        listeners.notifyListeners(listeners.UPDATE_ALLOWLIST_FILTER_RULES);
+    }
+
+    // TODO: simplify
+    static async onFiltersUpdate() {
+        log.info('update fitlers metadata...');
+        await metadata.loadBackend();
+        log.info('fitlers metadata updated');
+
+        // reinit linked services
+        await filtersState.init();
+        await groupsState.init();
+
+        const enabledFilters = filtersState.getEnabledFilters();
+
+        log.info(`update filters: ${enabledFilters}`);
+        await FiltersService.updateFilters(enabledFilters);
+        // reenable filters after donwloading
+        filtersState.enableFilters(enabledFilters);
+        log.info(`filters ${enabledFilters.join(',')} are updated`);
+
+        await Engine.update();
+
+        // TODO: return only updated
+        const updatedFilters = enabledFilters.map(filterId => metadata.getFilter(filterId));
+
+        listeners.notifyListeners(listeners.FILTERS_UPDATE_CHECK_READY, updatedFilters);
+        return updatedFilters;
     }
 
     static async addAndEnableFilters(filtersIds: number[]) {
-        console.log('Load Filters:', filtersIds);
         await FiltersService.loadFilters(filtersIds);
-        console.log('Enable filters:', filtersIds);
         filtersState.enableFilters(filtersIds);
     }
 
@@ -124,6 +184,7 @@ export class FiltersService {
         console.error(`Can't load filter ${filterId} rules`);
     }
 
+    // TODO: simplify update states
     static async loadFilterFromBackend(filterId: number, remote: boolean): Promise<boolean> {
         try {
             const rules = await networkService.downloadFilterRules(filterId, remote, false) as string[];
@@ -134,6 +195,19 @@ export class FiltersService {
                 installed: true,
                 loaded: true,
                 enabled: false,
+            });
+
+            const {
+                version,
+                expires,
+                timeUpdated,
+            } = metadata.getFilter(filterId);
+
+            filtersVersion.set(filterId, {
+                version,
+                expires,
+                lastUpdateTime: new Date(timeUpdated).getTime(),
+                lastCheckTime: Date.now(),
             });
 
             return true;
@@ -151,5 +225,9 @@ export class FiltersService {
 
     static async loadFilters(filtersIds: number[]) {
         return Promise.all(filtersIds.map((filterId) => FiltersService.loadFilterRules(filterId)));
+    }
+
+    static async updateFilters(filtersIds: number[]) {
+        return Promise.all(filtersIds.map(filtersId => FiltersService.loadFilterFromBackend(filtersId, true)));
     }
 }

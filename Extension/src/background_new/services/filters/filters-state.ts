@@ -18,7 +18,7 @@ export class FiltersState {
 
     data: Record<number, FilterStateData> = {};
 
-    async init() {
+    init() {
         const filtersMetadata = metadata.getFilters();
 
         const storageData = SettingsStorage.get(SettingOption.FILTERS_STATE_PROP);

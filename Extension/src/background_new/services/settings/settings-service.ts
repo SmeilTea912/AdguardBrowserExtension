@@ -8,6 +8,7 @@ import { AntiBannerFiltersId } from '../../../common/constants';
 
 import { Engine } from '../../engine';
 import { Categories } from '../filters/filters-categories';
+import { listeners } from '../../notifier';
 
 export class SettingsService {
     static async init() {
@@ -48,5 +49,9 @@ export class SettingsService {
         const { key, value } = message.data;
         await SettingsStorage.set(key, value);
         await Engine.update();
+        listeners.notifyListeners(listeners.SETTING_UPDATED, {
+            propertyName: key,
+            propertyValue: value,
+        });
     }
 }

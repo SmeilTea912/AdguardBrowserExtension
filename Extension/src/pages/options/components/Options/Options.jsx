@@ -16,10 +16,10 @@ import { About } from '../About';
 import { Footer } from '../Footer';
 import { rootStore } from '../../stores/RootStore';
 import { Notifications } from '../Notifications';
-// import { messenger } from '../../../services/messenger';
-// import { log } from '../../../../common/log';
+import { messenger } from '../../../services/messenger';
+import { log } from '../../../../common/log';
 import { Icons } from '../../../common/components/ui/Icons';
-// import { NOTIFIER_TYPES } from '../../../../common/constants';
+import { NOTIFIER_TYPES } from '../../../../common/constants';
 import { useAppearanceTheme } from '../../../common/hooks/useAppearanceTheme';
 
 import '../../styles/styles.pcss';
@@ -30,12 +30,11 @@ const Options = observer(() => {
     useAppearanceTheme(settingsStore.appearanceTheme);
 
     useEffect(() => {
-        // let removeListenerCallback = () => {};
+        let removeListenerCallback = () => {};
 
         (async () => {
             await settingsStore.requestOptionsData(true);
 
-            /*
             const events = [
                 NOTIFIER_TYPES.REQUEST_FILTER_UPDATED,
                 NOTIFIER_TYPES.UPDATE_ALLOWLIST_FILTER_RULES,
@@ -79,11 +78,10 @@ const Options = observer(() => {
                     }
                 },
             );
-            */
         })();
 
         return () => {
-            // removeListenerCallback();
+            removeListenerCallback();
         };
     }, [settingsStore]);
 

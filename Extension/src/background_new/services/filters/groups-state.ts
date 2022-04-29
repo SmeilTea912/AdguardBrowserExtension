@@ -14,7 +14,7 @@ export class GroupsState {
 
     data: Record<number, GroupStateData> = {};
 
-    async init() {
+    init() {
         const groupsMetadata = metadata.getGroups();
 
         const storageData = SettingsStorage.get(SettingOption.GROUPS_STATE_PROP);

@@ -8,6 +8,7 @@ import { metadata } from './services/filters/metadata';
 import { SettingsService } from './services/settings/settings-service';
 import { SettingsStorage } from './services/settings/settings-storage';
 import { log } from '../common/log';
+import { listeners } from './notifier';
 
 export type { Message as EngineMessage } from '@adguard/tswebextension';
 
@@ -23,7 +24,12 @@ export class Engine {
 
         log.info('Start tswebextension...');
         await Engine.api.start(configuration);
-        log.info('tswebextension is started. Rules count:', Engine.api.getRulesCount());
+
+        const rulesCount = Engine.api.getRulesCount();
+        log.info(`tswebextension is started. Rules count: ${rulesCount}`);
+        listeners.notifyListeners(listeners.REQUEST_FILTER_UPDATED, {
+            rulesCount,
+        });
     }
 
     static async update() {
@@ -31,7 +37,12 @@ export class Engine {
 
         log.info('Update tswebextension configuration...');
         await Engine.api.configure(configuration);
-        log.info(`tswebextension configuration is updatetd. Rules count: ${Engine.api.getRulesCount()}`);
+
+        const rulesCount = Engine.api.getRulesCount();
+        log.info(`tswebextension configuration is updatetd. Rules count: ${rulesCount}`);
+        listeners.notifyListeners(listeners.REQUEST_FILTER_UPDATED, {
+            rulesCount,
+        });
     }
 
     /**
