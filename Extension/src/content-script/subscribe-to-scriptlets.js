@@ -35,6 +35,9 @@ export const subscribeToScriptlets = (function () {
         };
         // Events may be passed differently in MV3
         window.addEventListener('adguard:scriptlet-close-window', closeWindowHandler);
+        setTimeout(() => {
+            window.removeEventListener('adguard:scriptlet-close-window', closeWindowHandler);
+        }, 1000);
         // Scriptlet is loaded first so we notify it that content script is ready
         dispatchEvent(new Event('adguard:subscribed-to-close-window'));
     };
