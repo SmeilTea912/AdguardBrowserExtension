@@ -33,9 +33,9 @@ export const subscribeToScriptlets = (function () {
                 type: 'scriptletCloseWindow',
             });
         };
-        window.addEventListener('scriptlet-close-window', closeWindowHandler);
-        // Scriptlet is loaded first so we notify it that сontent script is ready
-        dispatchEvent(new Event('subscribed-to-close-window'));
+        window.addEventListener('adguard:scriptlet-close-window', closeWindowHandler);
+        // Scriptlet is loaded first so we notify it that content script is ready
+        dispatchEvent(new Event('adguard:subscribed-to-close-window'));
     };
 
     /**
