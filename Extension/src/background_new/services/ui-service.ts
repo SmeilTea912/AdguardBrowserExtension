@@ -103,12 +103,14 @@ export class UiService {
         }
         path += `&subscribe=${encodeURIComponent(url)}`;
 
-        const activeTab = await TabsApi.findOne({ url: UiService.getExtensionPageUrl(path) });
+        path = UiService.getExtensionPageUrl(path);
+
+        const activeTab = await TabsApi.findOne({ url: path });
 
         if (activeTab) {
             await TabsApi.focus(activeTab);
         } else {
-            await browser.tabs.create({ url: UiService.getExtensionPageUrl(path) });
+            await browser.tabs.create({ url: path });
         }
     }
 

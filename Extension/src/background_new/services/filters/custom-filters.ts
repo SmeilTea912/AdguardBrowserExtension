@@ -337,6 +337,14 @@ export class CustomFilters {
     static async removeFilter(filterId: number) {
         await customFiltersMetadata.remove(filterId);
         await FiltersStorage.remove(filterId);
+
+        const filterState = filtersState.get(filterId);
+
+        await filtersState.delete(filterId);
+
+        if (filterState.enabled) {
+            Engine.update();
+        }
     }
 
     private static parseTag(tagName: string, rules: string[]) {
