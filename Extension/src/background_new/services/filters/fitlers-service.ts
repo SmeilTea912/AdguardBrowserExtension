@@ -1,28 +1,31 @@
-/* eslint-disable no-console */
 /* eslint-disable class-methods-use-this */
-import browser from 'webextension-polyfill';
+
 import { filtersState } from './filters-state';
 import { filtersVersion } from './filters-version';
 import { groupsState } from './groups-state';
 import { metadata } from './metadata';
 import { i18nMetadata } from './i18n-metadata';
 import { FiltersStorage } from './filters-storage';
+import { CustomFilters } from './custom-filters';
 import {
     AddAndEnableFilterMessage,
-    AntiBannerFiltersId,
-    DisableAntiBannerFilter,
+    DisableAntiBannerFilterMessage,
     MessageType,
+    CUSTOM_FILTERS_START_ID,
 } from '../../../common/constants';
 import { networkService } from '../network/network-service';
 import { messageHandler } from '../../message-handler';
 import { Engine } from '../../engine';
 import { log } from '../../../common/log';
 import { listeners } from '../../notifier';
+import { customFiltersMetadata } from './custom-filters-metadata';
 
 export class FiltersService {
     static async init() {
         await metadata.init();
+        await metadata.addCustomGroup();
         await i18nMetadata.init();
+        await customFiltersMetadata.init();
         filtersState.init();
         filtersVersion.init();
         groupsState.init();
@@ -32,11 +35,6 @@ export class FiltersService {
         messageHandler.addListener(MessageType.DISABLE_ANTIBANNER_FILTER, FiltersService.onFilterDisable);
         messageHandler.addListener(MessageType.ENABLE_FILTERS_GROUP, FiltersService.onGroupEnable);
         messageHandler.addListener(MessageType.DISABLE_FILTERS_GROUP, FiltersService.onGroupDisable);
-        messageHandler.addListener(MessageType.GET_USER_RULES, FiltersService.getUserRules);
-        messageHandler.addListener(MessageType.GET_USER_RULES_EDITOR_DATA, FiltersService.getUserRulesEditorData);
-        messageHandler.addListener(MessageType.SAVE_USER_RULES, FiltersService.onSaveUserRules);
-        messageHandler.addListener(MessageType.GET_ALLOWLIST_DOMAINS, FiltersService.getAllowlistDomains);
-        messageHandler.addListener(MessageType.SAVE_ALLOWLIST_DOMAINS, FiltersService.onSaveAllowlistDomains);
         messageHandler.addListener(MessageType.CHECK_ANTIBANNER_FILTERS_UPDATE, FiltersService.onFiltersUpdate);
     }
 
@@ -47,7 +45,7 @@ export class FiltersService {
         await Engine.update();
     }
 
-    static async onFilterDisable(message: DisableAntiBannerFilter) {
+    static async onFilterDisable(message: DisableAntiBannerFilterMessage) {
         const { filterId } = message.data;
 
         await filtersState.disableFilters([filterId]);
@@ -66,62 +64,6 @@ export class FiltersService {
 
         await groupsState.disableGroups([groupId]);
         await Engine.update();
-    }
-
-    static async getUserRules() {
-        const rulesText = FiltersStorage.get(AntiBannerFiltersId.USER_FILTER_ID);
-        const content = (rulesText || []).join('\n');
-        return { content, appVersion: browser.runtime.getManifest().version };
-    }
-
-    static async getUserRulesEditorData() {
-        const rulesText = FiltersStorage.get(AntiBannerFiltersId.USER_FILTER_ID);
-        const content = (rulesText || []).join('\n');
-        return {
-            userRules: content,
-            // TODO
-            // settings: settings.getAllSettings(),
-        };
-    }
-
-    static async onSaveUserRules(message: any) {
-        const { value } = message.data;
-
-        await FiltersStorage.set(AntiBannerFiltersId.USER_FILTER_ID, value.split('\n'));
-
-        // TODO
-        filtersState.set(AntiBannerFiltersId.USER_FILTER_ID, {
-            enabled: true,
-            installed: true,
-            loaded: true,
-        });
-
-        await Engine.update();
-
-        listeners.notifyListeners(listeners.UPDATE_ALLOWLIST_FILTER_RULES);
-    }
-
-    static async getAllowlistDomains() {
-        const text = FiltersStorage.get(AntiBannerFiltersId.ALLOWLIST_FILTER_ID);
-        const content = (text || []).join('\n');
-        return { content, appVersion: browser.runtime.getManifest().version };
-    }
-
-    static async onSaveAllowlistDomains(message: any) {
-        const { value } = message.data;
-
-        await FiltersStorage.set(AntiBannerFiltersId.ALLOWLIST_FILTER_ID, value.split('\n'));
-
-        // TODO
-        filtersState.set(AntiBannerFiltersId.ALLOWLIST_FILTER_ID, {
-            enabled: true,
-            installed: true,
-            loaded: true,
-        });
-
-        await Engine.update();
-
-        listeners.notifyListeners(listeners.UPDATE_ALLOWLIST_FILTER_RULES);
     }
 
     // TODO: simplify
@@ -157,31 +99,37 @@ export class FiltersService {
     }
 
     static async loadFilterRules(filterId: number) {
-        console.log(`Check if filter ${filterId} in storage...`);
+        if (filterId >= CUSTOM_FILTERS_START_ID) {
+            log.info(`Filter ${filterId} is custom, use specific loading flow...`);
+            await CustomFilters.loadCustomFilterById(filterId);
+            return;
+        }
+
+        log.info(`Check if filter ${filterId} in storage...`);
         const rules = FiltersStorage.get(filterId);
 
         if (rules) {
-            console.log(`Filter ${filterId} already loaded`);
+            log.info(`Filter ${filterId} already loaded`);
             return;
         }
 
-        console.log(`Loading filter ${filterId} from local assets...`);
+        log.info(`Loading filter ${filterId} from local assets...`);
         const isLocal = await FiltersService.loadFilterFromBackend(filterId, false);
 
         if (isLocal) {
-            console.log(`Filter ${filterId} loaded from local assets`);
+            log.info(`Filter ${filterId} loaded from local assets`);
             return;
         }
 
-        console.log(`Loading filter ${filterId} from backend...`);
+        log.info(`Loading filter ${filterId} from backend...`);
         const isRemote = await FiltersService.loadFilterFromBackend(filterId, true);
 
         if (isRemote) {
-            console.log(`Filter ${filterId} loaded from backend`);
+            log.info(`Filter ${filterId} loaded from backend`);
             return;
         }
 
-        console.error(`Can't load filter ${filterId} rules`);
+        log.error(`Can't load filter ${filterId} rules`);
     }
 
     // TODO: simplify update states
@@ -191,7 +139,7 @@ export class FiltersService {
 
             await FiltersStorage.set(filterId, rules);
 
-            filtersState.set(filterId, {
+            await filtersState.set(filterId, {
                 installed: true,
                 loaded: true,
                 enabled: false,
@@ -203,7 +151,7 @@ export class FiltersService {
                 timeUpdated,
             } = metadata.getFilter(filterId);
 
-            filtersVersion.set(filterId, {
+            await filtersVersion.set(filterId, {
                 version,
                 expires,
                 lastUpdateTime: new Date(timeUpdated).getTime(),
@@ -212,13 +160,13 @@ export class FiltersService {
 
             return true;
         } catch (e) {
-            filtersState.set(filterId, {
+            await filtersState.set(filterId, {
                 installed: false,
                 loaded: false,
                 enabled: false,
             });
 
-            console.error(e);
+            log.error(e);
             return false;
         }
     }

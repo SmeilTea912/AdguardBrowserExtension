@@ -8,6 +8,9 @@ import { eventService } from './services/event-service';
 import { storage } from './storage';
 import { Engine } from './engine';
 import { safebrowsingService } from './services/safebrowsing-service';
+import { Allowlist } from './services/filters/allowlist';
+import { Userrules } from './services/filters/userrules';
+import { CustomFilters } from './services/filters/custom-filters';
 
 (async () => {
     await storage.init();
@@ -15,6 +18,9 @@ import { safebrowsingService } from './services/safebrowsing-service';
     UiService.init();
     PopupService.init();
     await FiltersService.init();
+    await Allowlist.init();
+    await Userrules.init();
+    await CustomFilters.init();
     await Engine.start();
 
     messageHandler.init();

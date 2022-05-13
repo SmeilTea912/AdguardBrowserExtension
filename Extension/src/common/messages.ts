@@ -143,7 +143,7 @@ export type AddAndEnableFilterMessage = {
   }
 };
 
-export type DisableAntiBannerFilter = {
+export type DisableAntiBannerFilterMessage = {
   type: MessageType.DISABLE_ANTIBANNER_FILTER
   data: {
     filterId: number,
@@ -151,10 +151,24 @@ export type DisableAntiBannerFilter = {
   }
 };
 
-export type RemoveAntiBannerFilter = {
+export type RemoveAntiBannerFilterMessage = {
   type: MessageType.REMOVE_ANTIBANNER_FILTER
   data: {
     filterId: number
+  }
+};
+
+export type SaveAllowlistDomainsMessage = {
+  type: MessageType.SAVE_ALLOWLIST_DOMAINS
+  data: {
+    value: string,
+  }
+};
+
+export type SaveUserRulesMessage = {
+  type: MessageType.SAVE_USER_RULES
+  data: {
+    value: string,
   }
 };
 
@@ -170,8 +184,10 @@ export type Message = (
   | ChangeUserSettingMessage
   | ResetSettingsMessage
   | AddAndEnableFilterMessage
-  | DisableAntiBannerFilter
-  | RemoveAntiBannerFilter
+  | DisableAntiBannerFilterMessage
+  | RemoveAntiBannerFilterMessage
+  | SaveAllowlistDomainsMessage
+  | SaveUserRulesMessage
 ) &
   MessageCommonProps;
 

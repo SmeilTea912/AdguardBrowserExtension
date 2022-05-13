@@ -22,6 +22,7 @@ export class UiService {
         messageHandler.addListener(MessageType.OPEN_ABUSE_TAB, UiService.openAbuseTab);
         messageHandler.addListener(MessageType.OPEN_SITE_REPORT_TAB, UiService.openSiteReportTab);
         messageHandler.addListener(MessageType.OPEN_ASSISTANT, UiService.openAssistant);
+        messageHandler.addListener(MessageType.ADD_FILTERING_SUBSCRIPTION, UiService.openCustomFilterModal);
     }
 
     // listeners
@@ -91,6 +92,24 @@ export class UiService {
     static async openAssistant(): Promise<void> {
         const activeTab = await TabsApi.findOne({ active: true });
         Engine.api.openAssistant(activeTab.id);
+    }
+
+    static async openCustomFilterModal(message): Promise<void> {
+        const { url, title } = message.data;
+
+        let path = 'options.html#filters?group=0';
+        if (title) {
+            path += `&title=${title}`;
+        }
+        path += `&subscribe=${encodeURIComponent(url)}`;
+
+        const activeTab = await TabsApi.findOne({ url: UiService.getExtensionPageUrl(path) });
+
+        if (activeTab) {
+            await TabsApi.focus(activeTab);
+        } else {
+            await browser.tabs.create({ url: UiService.getExtensionPageUrl(path) });
+        }
     }
 
     // helpers

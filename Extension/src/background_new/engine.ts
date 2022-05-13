@@ -1,5 +1,5 @@
 import { TsWebExtension, Configuration, MESSAGE_HANDLER_NAME } from '@adguard/tswebextension';
-import { AntiBannerFiltersId } from '../common/constants';
+import { AntiBannerFiltersId, CUSTOM_FILTERS_START_ID } from '../common/constants';
 import { SettingOption } from '../common/settings';
 import { filtersState } from './services/filters/filters-state';
 import { FiltersStorage } from './services/filters/filters-storage';
@@ -9,6 +9,7 @@ import { SettingsService } from './services/settings/settings-service';
 import { SettingsStorage } from './services/settings/settings-storage';
 import { log } from '../common/log';
 import { listeners } from './notifier';
+import { customFiltersMetadata } from './services/filters/custom-filters-metadata';
 
 export type { Message as EngineMessage } from '@adguard/tswebextension';
 
@@ -39,7 +40,7 @@ export class Engine {
         await Engine.api.configure(configuration);
 
         const rulesCount = Engine.api.getRulesCount();
-        log.info(`tswebextension configuration is updatetd. Rules count: ${rulesCount}`);
+        log.info(`tswebextension configuration is updated. Rules count: ${rulesCount}`);
         listeners.notifyListeners(listeners.REQUEST_FILTER_UPDATED, {
             rulesCount,
         });
@@ -75,10 +76,18 @@ export class Engine {
                 continue;
             }
 
-            const filterMetadata = metadata.getFilter(filterId);
+            if (filterId >= CUSTOM_FILTERS_START_ID) {
+                const customFilterMetadata = customFiltersMetadata.getById(filterId);
 
-            if (!enabledGroups.some((groupId) => groupId === filterMetadata.groupId)) {
-                continue;
+                if (!enabledGroups.some((groupId) => groupId === customFilterMetadata.groupId)) {
+                    continue;
+                }
+            } else {
+                const filterMetadata = metadata.getFilter(filterId);
+
+                if (!enabledGroups.some((groupId) => groupId === filterMetadata.groupId)) {
+                    continue;
+                }
             }
 
             const rulesTexts = rules.join('\n');

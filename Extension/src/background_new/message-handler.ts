@@ -36,6 +36,7 @@ export class MessageHandler {
       }
 
       if (message.handlerName === APP_MESSAGE_HANDLER_NAME) {
+          console.log(message);
           const listener = this.messageListeners.get(message.type) as MessageListener<T>;
           if (listener) {
               return listener(message, sender);

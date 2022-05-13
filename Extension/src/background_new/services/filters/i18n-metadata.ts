@@ -1,5 +1,5 @@
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { log } from '../../../common/log';
 import { networkService } from '../network/network-service';
 import { SettingOption } from '../../../common/settings';
 import { SettingsStorage } from '../settings/settings-storage';
@@ -12,31 +12,31 @@ export class I18nMetadata {
     };
 
     async init(): Promise<void> {
-        console.log('Loading filters i18n metadata from storage...');
+        log.info('Loading filters i18n metadata from storage...');
         const isPersistant = await this.loadPersistant();
 
         if (isPersistant) {
-            console.log('Filters i18n metadata loaded from storage');
+            log.info('Filters i18n metadata loaded from storage');
             return;
         }
 
-        console.log('Loading i18n metadata from local assets...');
+        log.info('Loading i18n metadata from local assets...');
         const islocal = await this.loadLocal();
 
         if (islocal) {
-            console.log('Filters i18n metadata loaded from local assets');
+            log.info('Filters i18n metadata loaded from local assets');
             return;
         }
 
-        console.log('Loading metadata from backend...');
+        log.info('Loading metadata from backend...');
         const isBackend = await this.loadBackend();
 
         if (isBackend) {
-            console.log('Filters i18n metadata loaded from backend');
+            log.info('Filters i18n metadata loaded from backend');
             return;
         }
 
-        console.log('Can`t load i18n metadata');
+        log.info('Can`t load i18n metadata');
     }
 
     async loadPersistant(): Promise<boolean> {
@@ -93,27 +93,45 @@ export class I18nMetadata {
         return this.data.filters.find(el => el.filterId === filterId);
     }
 
+    getFilters() {
+        return this.data.filters;
+    }
+
     getGroup(groupId: number) {
         return this.data.groups.find(el => el.groupId === groupId);
+    }
+
+    getGroups() {
+        return this.data.groups;
     }
 
     getTag(tagId: number) {
         return this.data.tags.find(el => el.tagId === tagId);
     }
 
-    setFilter(filterId: number, data: any) {
-        this.data.filters[filterId] = data;
-        this.updateStorageData();
+    getTags() {
+        return this.data.tags;
     }
 
-    setGroup(groupId: number, data: any) {
-        this.data.groups[groupId] = data;
-        this.updateStorageData();
+    async setFilter(filterId: number, filter: any) {
+        const filters = this.getFilters().filter(f => f.filterId !== filterId);
+        filters.push(filter);
+        this.data.filters = filters;
+        await this.updateStorageData();
     }
 
-    setTag(tagId: number, data: any) {
-        this.data.tags[tagId] = data;
-        this.updateStorageData();
+    async setGroup(groupId: number, group: any) {
+        const groups = this.getGroups().filter(g => g.groupId !== groupId);
+        groups.push(group);
+        this.data.groups = groups;
+        await this.updateStorageData();
+    }
+
+    async setTag(tagId: number, tag: any) {
+        const tags = this.getTags().filter(t => t.tagId !== tagId);
+        tags.push(tag);
+        this.data.tags = tags;
+        await this.updateStorageData();
     }
 
     private async updateStorageData(): Promise<void> {

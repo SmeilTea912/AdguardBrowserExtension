@@ -28,7 +28,6 @@ export class FiltersState {
         for (let i = 0; i < filtersMetadata.length; i += 1) {
             const { filterId } = filtersMetadata[i] as { filterId: number };
 
-            // TODO install state
             data[filterId] = data[filterId] || FiltersState.defaultState;
         }
 
