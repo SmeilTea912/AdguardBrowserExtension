@@ -12,7 +12,7 @@ export class FiltersStorage {
         return storage.get(key) as string[];
     }
 
-    static remove(filterId: number) {
+    static async remove(filterId: number) {
         const key = FiltersStorage.getFilterKey(filterId);
         return storage.remove(key);
     }

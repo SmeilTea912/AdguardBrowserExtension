@@ -1,10 +1,13 @@
-import browser from 'webextension-polyfill';
+import browser, { WebNavigation, WebRequest } from 'webextension-polyfill';
+import { RequestType } from '@adguard/tsurlfilter';
+import { FrameRequestService, tabsApi } from '@adguard/tswebextension';
 import MD5 from 'crypto-js/md5';
 import { BrowserUtils } from '../../utils/browser-utils';
 import { log } from '../../../common/log';
 import {
     ANTIBANNER_GROUPS_ID,
     CUSTOM_FILTERS_START_ID,
+    BACKGROUND_TAB_ID,
     MessageType,
 } from '../../../common/constants';
 import { customFiltersMetadata } from './custom-filters-metadata';
@@ -31,15 +34,7 @@ export class CustomFilters {
         messageHandler.addListener(MessageType.SUBSCRIBE_TO_CUSTOM_FILTER, CustomFilters.onCustomFilterSubscribtion);
         messageHandler.addListener(MessageType.REMOVE_ANTIBANNER_FILTER, CustomFilters.onCustomFilterRemove);
 
-        browser.webNavigation.onCommitted.addListener((details) => {
-            const { tabId, frameId } = details;
-
-            browser.tabs.executeScript(tabId, {
-                file: '/content-script/subscribe.js',
-                runAt: 'document_start',
-                frameId,
-            });
-        });
+        browser.webNavigation.onCommitted.addListener(CustomFilters.onTabCommited);
     }
 
     static async onCustomFilterInfoLoad(message) {
@@ -337,6 +332,7 @@ export class CustomFilters {
     static async removeFilter(filterId: number) {
         await customFiltersMetadata.remove(filterId);
         await FiltersStorage.remove(filterId);
+        await filtersVersion.delete(filterId);
 
         const filterState = filtersState.get(filterId);
 
@@ -345,6 +341,39 @@ export class CustomFilters {
         if (filterState.enabled) {
             Engine.update();
         }
+    }
+
+    static onTabCommited(details: WebNavigation.OnCommittedDetailsType) {
+        const { tabId, frameId } = details;
+
+        if (tabId === BACKGROUND_TAB_ID) {
+            return;
+        }
+
+        const frame = tabsApi.getTabFrame(tabId, frameId);
+
+        if (!frame?.url) {
+            return;
+        }
+
+        const requestSearchParams = FrameRequestService.prepareSearchParams(frame.url, tabId, frameId);
+        const requestContext = FrameRequestService.search(requestSearchParams);
+
+        if (!requestContext) {
+            return;
+        }
+
+        const { requestType } = requestContext;
+
+        if (requestType !== RequestType.Document && requestType !== RequestType.Subdocument) {
+            return;
+        }
+
+        browser.tabs.executeScript(tabId, {
+            file: '/content-script/subscribe.js',
+            runAt: 'document_start',
+            frameId,
+        });
     }
 
     private static parseTag(tagName: string, rules: string[]) {

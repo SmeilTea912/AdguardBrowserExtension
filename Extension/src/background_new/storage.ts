@@ -26,7 +26,7 @@ export class Storage {
         return this.data[key];
     }
 
-    remove(key: string) {
+    async remove(key: string) {
         this.storage.remove(key);
     }
 }
