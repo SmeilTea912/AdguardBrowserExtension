@@ -19,6 +19,8 @@ import { Engine } from '../../engine';
 import { log } from '../../../common/log';
 import { listeners } from '../../notifier';
 import { customFiltersMetadata } from './custom-filters-metadata';
+import { SettingsStorage } from '../settings/settings-storage';
+import { SettingOption } from '../../../common/settings';
 
 export class FiltersService {
     static async init() {
@@ -134,8 +136,10 @@ export class FiltersService {
 
     // TODO: simplify update states
     static async loadFilterFromBackend(filterId: number, remote: boolean): Promise<boolean> {
+        const isOptimized = SettingsStorage.get(SettingOption.USE_OPTIMIZED_FILTERS);
+
         try {
-            const rules = await networkService.downloadFilterRules(filterId, remote, false) as string[];
+            const rules = await networkService.downloadFilterRules(filterId, remote, isOptimized) as string[];
 
             await FiltersStorage.set(filterId, rules);
 
@@ -175,7 +179,15 @@ export class FiltersService {
         return Promise.all(filtersIds.map((filterId) => FiltersService.loadFilterRules(filterId)));
     }
 
+    static async updateFilter(filterId: number) {
+        if (filterId >= CUSTOM_FILTERS_START_ID) {
+            return CustomFilters.loadCustomFilterByIdFromBackend(filterId);
+        }
+
+        return FiltersService.loadFilterFromBackend(filterId, true);
+    }
+
     static async updateFilters(filtersIds: number[]) {
-        return Promise.all(filtersIds.map(filtersId => FiltersService.loadFilterFromBackend(filtersId, true)));
+        return Promise.all(filtersIds.map(filtersId => FiltersService.updateFilter(filtersId)));
     }
 }

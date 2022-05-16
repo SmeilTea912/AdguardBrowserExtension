@@ -9,6 +9,8 @@ import { AntiBannerFiltersId } from '../../../common/constants';
 import { Engine } from '../../engine';
 import { Categories } from '../filters/filters-categories';
 import { listeners } from '../../notifier';
+import { SettingOption } from '../../../common/settings';
+import { FiltersService } from '../filters/fitlers-service';
 
 export class SettingsService {
     static async init() {
@@ -48,6 +50,11 @@ export class SettingsService {
     static async changeUserSettings(message) {
         const { key, value } = message.data;
         await SettingsStorage.set(key, value);
+
+        if (key === SettingOption.USE_OPTIMIZED_FILTERS) {
+            await FiltersService.onFiltersUpdate();
+        }
+
         await Engine.update();
         listeners.notifyListeners(listeners.SETTING_UPDATED, {
             propertyName: key,

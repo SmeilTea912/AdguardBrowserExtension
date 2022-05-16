@@ -1,4 +1,4 @@
-import browser, { WebNavigation, WebRequest } from 'webextension-polyfill';
+import browser, { WebNavigation } from 'webextension-polyfill';
 import { RequestType } from '@adguard/tsurlfilter';
 import { FrameRequestService, tabsApi } from '@adguard/tswebextension';
 import MD5 from 'crypto-js/md5';
@@ -212,6 +212,28 @@ export class CustomFilters {
         const isRemote = await CustomFilters.loadCustomFilter(customUrl);
 
         if (isRemote) {
+            log.info(`Custom filter ${filterId} loaded from backend`);
+            return;
+        }
+
+        log.error(`Can't load filter ${filterId} rules`);
+    }
+
+    static async loadCustomFilterByIdFromBackend(filterId: number) {
+        log.info(`Check if custom filter ${filterId} metadata exists...`);
+
+        const filter = customFiltersMetadata.getById(filterId);
+
+        if (!filter?.customUrl) {
+            log.error(`Can't find custom filter ${filterId} subscription url`);
+            return;
+        }
+
+        log.info(`Loading custom filter ${filterId} from backend...`);
+
+        const isLoaded = await CustomFilters.loadCustomFilter(filter.customUrl);
+
+        if (isLoaded) {
             log.info(`Custom filter ${filterId} loaded from backend`);
             return;
         }
