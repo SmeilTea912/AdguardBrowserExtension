@@ -6,7 +6,8 @@ import { groupsState } from './groups-state';
 import { metadata } from './metadata';
 import { i18nMetadata } from './i18n-metadata';
 import { FiltersStorage } from './filters-storage';
-import { CustomFilters } from './custom-filters';
+import { CustomFilterApi } from './custom/api';
+import { customFilterMetadataStorage } from './custom/metadata';
 import {
     AddAndEnableFilterMessage,
     DisableAntiBannerFilterMessage,
@@ -18,7 +19,6 @@ import { messageHandler } from '../../message-handler';
 import { Engine } from '../../engine';
 import { log } from '../../../common/log';
 import { listeners } from '../../notifier';
-import { customFiltersMetadata } from './custom-filters-metadata';
 import { SettingsStorage } from '../settings/settings-storage';
 import { SettingOption } from '../../../common/settings';
 
@@ -27,7 +27,7 @@ export class FiltersService {
         await metadata.init();
         await metadata.addCustomGroup();
         await i18nMetadata.init();
-        await customFiltersMetadata.init();
+        await customFilterMetadataStorage.init();
         filtersState.init();
         filtersVersion.init();
         groupsState.init();
@@ -72,6 +72,7 @@ export class FiltersService {
     static async onFiltersUpdate() {
         log.info('update fitlers metadata...');
         await metadata.loadBackend();
+        await metadata.addCustomGroup();
         log.info('fitlers metadata updated');
 
         // reinit linked services
@@ -80,16 +81,14 @@ export class FiltersService {
 
         const enabledFilters = filtersState.getEnabledFilters();
 
-        log.info(`update filters: ${enabledFilters}`);
-        await FiltersService.updateFilters(enabledFilters);
+        log.info(`check filters updates: ${enabledFilters}`);
+        const updatedFilters = await FiltersService.updateFilters(enabledFilters);
+
         // reenable filters after donwloading
         filtersState.enableFilters(enabledFilters);
-        log.info(`filters ${enabledFilters.join(',')} are updated`);
+        log.info(`filters ${updatedFilters.map(f => f.filterId).join(',')} are updated`);
 
         await Engine.update();
-
-        // TODO: return only updated
-        const updatedFilters = enabledFilters.map(filterId => metadata.getFilter(filterId));
 
         listeners.notifyListeners(listeners.FILTERS_UPDATE_CHECK_READY, updatedFilters);
         return updatedFilters;
@@ -101,9 +100,9 @@ export class FiltersService {
     }
 
     static async loadFilterRules(filterId: number) {
-        if (filterId >= CUSTOM_FILTERS_START_ID) {
+        if (FiltersService.isCustomFilter(filterId)) {
             log.info(`Filter ${filterId} is custom, use specific loading flow...`);
-            await CustomFilters.loadCustomFilterById(filterId);
+            await CustomFilterApi.updateCustomFilter(filterId);
             return;
         }
 
@@ -179,15 +178,35 @@ export class FiltersService {
         return Promise.all(filtersIds.map((filterId) => FiltersService.loadFilterRules(filterId)));
     }
 
-    static async updateFilter(filterId: number) {
-        if (filterId >= CUSTOM_FILTERS_START_ID) {
-            return CustomFilters.loadCustomFilterByIdFromBackend(filterId);
+    static async updateFilter(filterId: number): Promise<boolean> {
+        if (FiltersService.isCustomFilter(filterId)) {
+            return CustomFilterApi.updateCustomFilter(filterId);
         }
 
         return FiltersService.loadFilterFromBackend(filterId, true);
     }
 
     static async updateFilters(filtersIds: number[]) {
-        return Promise.all(filtersIds.map(filtersId => FiltersService.updateFilter(filtersId)));
+        const updatedFilters = [];
+
+        const tasks = filtersIds.map(async (filterId) => {
+            const isUpdated = await FiltersService.updateFilter(filterId);
+
+            if (isUpdated) {
+                const filterMetadata = FiltersService.isCustomFilter(filterId)
+                    ? customFilterMetadataStorage.getById(filterId)
+                    : metadata.getFilter(filterId);
+
+                updatedFilters.push(filterMetadata);
+            }
+        });
+
+        await Promise.all(tasks);
+
+        return updatedFilters;
+    }
+
+    private static isCustomFilter(filterId: number): boolean {
+        return filterId >= CUSTOM_FILTERS_START_ID;
     }
 }

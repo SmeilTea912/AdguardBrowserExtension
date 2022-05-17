@@ -10,7 +10,7 @@ import { Engine } from './engine';
 import { safebrowsingService } from './services/safebrowsing-service';
 import { Allowlist } from './services/filters/allowlist';
 import { Userrules } from './services/filters/userrules';
-import { CustomFilters } from './services/filters/custom-filters';
+import { CustomFilterService } from './services/filters/custom/service';
 
 (async () => {
     await storage.init();
@@ -20,7 +20,7 @@ import { CustomFilters } from './services/filters/custom-filters';
     await FiltersService.init();
     await Allowlist.init();
     await Userrules.init();
-    await CustomFilters.init();
+    await CustomFilterService.init();
     await Engine.start();
 
     messageHandler.init();

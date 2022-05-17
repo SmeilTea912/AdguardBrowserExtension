@@ -9,7 +9,7 @@ import { SettingsService } from './services/settings/settings-service';
 import { SettingsStorage } from './services/settings/settings-storage';
 import { log } from '../common/log';
 import { listeners } from './notifier';
-import { customFiltersMetadata } from './services/filters/custom-filters-metadata';
+import { customFilterMetadataStorage } from './services/filters/custom/metadata';
 
 export type { Message as EngineMessage } from '@adguard/tswebextension';
 
@@ -77,7 +77,7 @@ export class Engine {
             }
 
             if (filterId >= CUSTOM_FILTERS_START_ID) {
-                const customFilterMetadata = customFiltersMetadata.getById(filterId);
+                const customFilterMetadata = customFilterMetadataStorage.getById(filterId);
 
                 if (!enabledGroups.some((groupId) => groupId === customFilterMetadata.groupId)) {
                     continue;

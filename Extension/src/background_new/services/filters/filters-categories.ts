@@ -2,7 +2,7 @@ import { metadata } from './metadata';
 import { filtersState } from './filters-state';
 import { groupsState } from './groups-state';
 import { filtersVersion } from './filters-version';
-import { customFiltersMetadata } from './custom-filters-metadata';
+import { customFilterMetadataStorage } from './custom/metadata';
 
 export class Categories {
     static getFiltersMetadata() {
@@ -52,7 +52,7 @@ export class Categories {
     }
 
     private static getFilters() {
-        const filtersMetadata = metadata.getFilters().concat(customFiltersMetadata.data);
+        const filtersMetadata = metadata.getFilters().concat(customFilterMetadataStorage.data);
 
         const result = [];
 

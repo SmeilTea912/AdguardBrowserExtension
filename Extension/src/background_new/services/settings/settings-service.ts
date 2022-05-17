@@ -55,7 +55,6 @@ export class SettingsService {
             await FiltersService.onFiltersUpdate();
         }
 
-        await Engine.update();
         listeners.notifyListeners(listeners.SETTING_UPDATED, {
             propertyName: key,
             propertyValue: value,
