@@ -58,9 +58,9 @@ export class FiltersService {
 
         const updatedFilters = await FiltersApi.updateFilters(enabledFilters);
 
-        await Engine.update();
-
         filtersState.enableFilters(enabledFilters);
+
+        await Engine.update();
 
         listeners.notifyListeners(listeners.FILTERS_UPDATE_CHECK_READY, updatedFilters);
         return updatedFilters;
