@@ -60,6 +60,8 @@ export class FiltersService {
 
         await Engine.update();
 
+        filtersState.enableFilters(enabledFilters);
+
         listeners.notifyListeners(listeners.FILTERS_UPDATE_CHECK_READY, updatedFilters);
         return updatedFilters;
     }
