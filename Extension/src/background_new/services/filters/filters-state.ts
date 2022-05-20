@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { SettingOption } from '../../../common/settings';
 import { SettingsStorage } from '../settings/settings-storage';
-import { metadata } from './metadata';
+import { metadataStorage } from './metadata';
 
 export type FilterStateData = {
     enabled: boolean;
@@ -19,7 +19,7 @@ export class FiltersState {
     data: Record<number, FilterStateData> = {};
 
     init() {
-        const filtersMetadata = metadata.getFilters();
+        const filtersMetadata = metadataStorage.getFilters();
 
         const storageData = SettingsStorage.get(SettingOption.FILTERS_STATE_PROP);
 

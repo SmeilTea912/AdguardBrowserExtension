@@ -3,7 +3,7 @@ import { messageHandler } from './message-handler';
 import { UiService } from './services/ui-service';
 import { PopupService } from './services/popup-service';
 import { SettingsService } from './services/settings/settings-service';
-import { FiltersService } from './services/filters/fitlers-service';
+import { FiltersService } from './services/filters/service';
 import { eventService } from './services/event-service';
 import { storage } from './storage';
 import { Engine } from './engine';

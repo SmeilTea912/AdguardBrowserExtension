@@ -5,7 +5,7 @@ import { SettingOption } from '../../../common/settings';
 import { SettingsStorage } from '../settings/settings-storage';
 import { ANTIBANNER_GROUPS_ID, CUSTOM_FILTERS_GROUP_DISPLAY_NUMBER } from '../../../common/constants';
 
-export class Metadata {
+export class MetadataStorage {
     data = {
         filters: [],
         groups: [],
@@ -13,81 +13,63 @@ export class Metadata {
     };
 
     async init(): Promise<void> {
-        log.info('Loading filters metadata from storage...');
-        const isPersistant = await this.loadPersistant();
+        try {
+            const isPersistant = await this.loadPersistant();
 
-        if (isPersistant) {
-            log.info('Filters metadata loaded from storage');
-            return;
+            if (isPersistant) {
+                return;
+            }
+        } catch (e) {
+            log.error(e);
         }
 
-        log.info('Loading metadata from local assets...');
-        const islocal = await this.loadLocal();
-
-        if (islocal) {
-            log.info('Filters metadata loaded from local assets');
+        try {
+            await this.loadLocal();
             return;
+        } catch (e) {
+            log.error(e);
         }
 
-        log.info('Loading metadata from backend...');
-        const isBackend = await this.loadBackend();
-
-        if (isBackend) {
-            log.info('Filters metadata loaded from backend');
+        try {
+            await this.loadBackend();
             return;
+        } catch (e) {
+            log.error(e);
         }
-
-        log.error('Can`t load metadata');
     }
 
     async loadPersistant(): Promise<boolean> {
+        log.info('Loading filters metadata from storage...');
         const data = SettingsStorage.get(SettingOption.METADATA);
 
         if (!data) {
             return false;
         }
 
-        try {
-            this.data = JSON.parse(data);
-            return true;
-        } catch (e) {
-            log.error(e);
-            return false;
-        }
+        this.data = JSON.parse(data);
+        this.addCustomGroup();
+        await this.updateStorageData();
+        log.info('Filters metadata loaded from storage');
+
+        return true;
     }
 
-    async loadLocal(): Promise<boolean> {
-        try {
-            const data = await networkService.getLocalFiltersMetadata();
-
-            if (!data) {
-                return false;
-            }
-
-            this.data = data;
-            await this.updateStorageData();
-            return true;
-        } catch (e) {
-            log.error(e);
-            return false;
-        }
+    async loadLocal() {
+        log.info('Loading metadata from local assets...');
+        const data = await networkService.getLocalFiltersMetadata();
+        this.data = data;
+        await this.addCustomGroup();
+        await this.updateStorageData();
+        log.info('Filters metadata loaded from local assets');
     }
 
-    async loadBackend(): Promise<boolean> {
-        try {
-            const data = await networkService.downloadMetadataFromBackend();
-
-            if (!data) {
-                return false;
-            }
-
-            this.data = data;
-            await this.updateStorageData();
-            return true;
-        } catch (e) {
-            log.error(e);
-            return false;
-        }
+    async loadBackend() {
+        log.info('Loading metadata from backend...');
+        const data = await networkService.downloadMetadataFromBackend();
+        this.data = data;
+        await this.addCustomGroup();
+        await this.updateStorageData();
+        log.info('Filters metadata loaded from backend');
     }
 
     getFilters() {
@@ -135,7 +117,7 @@ export class Metadata {
         await this.updateStorageData();
     }
 
-    async addCustomGroup() {
+    private async addCustomGroup() {
         if (!this.data[ANTIBANNER_GROUPS_ID.CUSTOM_FILTERS_GROUP_ID]) {
             await this.setGroup(ANTIBANNER_GROUPS_ID.CUSTOM_FILTERS_GROUP_ID, {
                 displayNumber: CUSTOM_FILTERS_GROUP_DISPLAY_NUMBER,
@@ -150,4 +132,4 @@ export class Metadata {
     }
 }
 
-export const metadata = new Metadata();
+export const metadataStorage = new MetadataStorage();

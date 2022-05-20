@@ -1,15 +1,14 @@
 import { TsWebExtension, Configuration, MESSAGE_HANDLER_NAME } from '@adguard/tswebextension';
-import { AntiBannerFiltersId, CUSTOM_FILTERS_START_ID } from '../common/constants';
+import { AntiBannerFiltersId } from '../common/constants';
 import { SettingOption } from '../common/settings';
 import { filtersState } from './services/filters/filters-state';
 import { FiltersStorage } from './services/filters/filters-storage';
 import { groupsState } from './services/filters/groups-state';
-import { metadata } from './services/filters/metadata';
 import { SettingsService } from './services/settings/settings-service';
 import { SettingsStorage } from './services/settings/settings-storage';
 import { log } from '../common/log';
 import { listeners } from './notifier';
-import { customFilterMetadataStorage } from './services/filters/custom/metadata';
+import { FiltersApi } from './services/filters/api';
 
 export type { Message as EngineMessage } from '@adguard/tswebextension';
 
@@ -76,18 +75,10 @@ export class Engine {
                 continue;
             }
 
-            if (filterId >= CUSTOM_FILTERS_START_ID) {
-                const customFilterMetadata = customFilterMetadataStorage.getById(filterId);
+            const filterMetadata = FiltersApi.getFilterMetadata(filterId);
 
-                if (!enabledGroups.some((groupId) => groupId === customFilterMetadata.groupId)) {
-                    continue;
-                }
-            } else {
-                const filterMetadata = metadata.getFilter(filterId);
-
-                if (!enabledGroups.some((groupId) => groupId === filterMetadata.groupId)) {
-                    continue;
-                }
+            if (!enabledGroups.some((groupId) => groupId === filterMetadata.groupId)) {
+                continue;
             }
 
             const rulesTexts = rules.join('\n');

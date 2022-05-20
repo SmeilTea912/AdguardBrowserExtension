@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { SettingOption } from '../../../common/settings';
 import { SettingsStorage } from '../settings/settings-storage';
-import { metadata } from './metadata';
+import { metadataStorage } from './metadata';
 
 export type GroupStateData = {
     enabled: boolean;
@@ -15,7 +15,7 @@ export class GroupsState {
     data: Record<number, GroupStateData> = {};
 
     init() {
-        const groupsMetadata = metadata.getGroups();
+        const groupsMetadata = metadataStorage.getGroups();
 
         const storageData = SettingsStorage.get(SettingOption.GROUPS_STATE_PROP);
 

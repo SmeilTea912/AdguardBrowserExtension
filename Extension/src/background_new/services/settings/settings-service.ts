@@ -10,7 +10,7 @@ import { Engine } from '../../engine';
 import { Categories } from '../filters/filters-categories';
 import { listeners } from '../../notifier';
 import { SettingOption } from '../../../common/settings';
-import { FiltersService } from '../filters/fitlers-service';
+import { FiltersService } from '../filters/service';
 
 export class SettingsService {
     static async init() {

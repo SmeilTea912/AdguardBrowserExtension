@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { SettingOption } from '../../../common/settings';
 import { SettingsStorage } from '../settings/settings-storage';
-import { metadata } from './metadata';
+import { FiltersApi } from './api';
 
 export type FilterVersionData = {
     version: string,
@@ -14,7 +14,7 @@ export class FiltersVersion {
     data: Record<number, FilterVersionData> = {};
 
     init() {
-        const filtersMetadata = metadata.getFilters();
+        const filtersMetadata = FiltersApi.getFiltersMetadata();
 
         const storageData = SettingsStorage.get(SettingOption.FILTERS_VERSION_PROP);
 

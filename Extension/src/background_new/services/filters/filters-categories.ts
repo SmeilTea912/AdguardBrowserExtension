@@ -1,8 +1,8 @@
-import { metadata } from './metadata';
+import { metadataStorage } from './metadata';
 import { filtersState } from './filters-state';
 import { groupsState } from './groups-state';
 import { filtersVersion } from './filters-version';
-import { customFilterMetadataStorage } from './custom/metadata';
+import { FiltersApi } from './api';
 
 export class Categories {
     static getFiltersMetadata() {
@@ -24,7 +24,7 @@ export class Categories {
     }
 
     private static getTagsDetails(tagsIds: number[]) {
-        const tagsMetadata = metadata.getTags();
+        const tagsMetadata = metadataStorage.getTags();
 
         const tagsDetails = [];
 
@@ -52,7 +52,7 @@ export class Categories {
     }
 
     private static getFilters() {
-        const filtersMetadata = metadata.getFilters().concat(customFilterMetadataStorage.data);
+        const filtersMetadata = FiltersApi.getFiltersMetadata();
 
         const result = [];
 
@@ -79,7 +79,7 @@ export class Categories {
     }
 
     private static getGroups() {
-        const groupsMetadata = metadata.getGroups();
+        const groupsMetadata = metadataStorage.getGroups();
 
         const result = [];
 
