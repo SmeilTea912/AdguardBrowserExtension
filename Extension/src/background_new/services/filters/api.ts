@@ -11,9 +11,16 @@ import { groupsState } from './groups-state';
 import { i18nMetadata } from './i18n-metadata';
 import { metadataStorage } from './metadata';
 
+/**
+ * Encapsulates the logic for managing filter data that is stored in the extension.
+ */
 export class FiltersApi {
+    /**
+     * Initialize metadata and linked storages.
+     *
+     * Called while filters service initialization.
+     */
     public static async initMetadata(): Promise<void> {
-        log.info('Init filters metadata...');
         await metadataStorage.init();
         await i18nMetadata.init();
         await customFilterMetadataStorage.init();
@@ -21,64 +28,99 @@ export class FiltersApi {
         filtersState.init();
         groupsState.init();
         filtersVersion.init();
-
-        log.info('Filters metadata successfully initialized');
     }
 
-    public static async updateMetadata(): Promise<void> {
-        log.info('Update filters metadata...');
-        await metadataStorage.loadBackend();
+    /**
+     * Load metadata from remote source and reload linked storages.
+     *
+     * Called before filters rules are updated or loaded from backend.
+     *
+     * @param remote - is metadata loaded from backend
+     */
+    public static async loadMetadata(remote: boolean): Promise<void> {
+        await metadataStorage.loadMetadata(remote);
 
-        // update linked storages
         filtersState.init();
         groupsState.init();
         filtersVersion.init();
-
-        log.info('Filters metadata successfully updated');
     }
 
-    public static async loadFilter(filterId: number) {
-        log.info(`Check if filter ${filterId} in storage...`);
-
+    /**
+     * Checks if filter rules exist in browser storage.
+     *
+     * Called while filters loading.
+     *
+     * @param filterId - filter id
+     */
+    public static async isFilterRulesIsLoaded(filterId: number) {
         const filterState = filtersState.get(filterId);
 
-        if (filterState?.loaded) {
-            log.info(`Filter ${filterId} already loaded`);
+        return filterState?.loaded;
+    }
+
+    /**
+     * Load filters metadata and rules from external source.
+     *
+     * Skip loaded filters.
+     *
+     * @param filtersIds - loaded filters ids
+     * @param remote - is metadata and rules loaded from backend
+     */
+    public static async loadFilters(filtersIds: number[], remote: boolean) {
+        /**
+         * Ignore loaded filters
+         * Custom filters always has loaded state, so we don't need additional check
+         */
+        const unloadedFilters = filtersIds.filter(id => !FiltersApi.isFilterRulesIsLoaded(id));
+
+        if (unloadedFilters.length === 0) {
             return;
         }
 
-        log.info(`Loading filter ${filterId} from local assets...`);
+        await FiltersApi.loadMetadata(remote);
 
-        try {
-            await FiltersApi.loadFilterRulesFromBackend(filterId, false);
-            log.info(`Filter ${filterId} loaded from local assets`);
-            return;
-        } catch (e) {
-            log.error(e);
-        }
-
-        log.info(`Loading filter ${filterId} from backend...`);
-
-        try {
-            await FiltersApi.loadFilterRulesFromBackend(filterId, true);
-            log.info(`Filter ${filterId} loaded from backend`);
-            return;
-        } catch (e) {
-            log.error(e);
-        }
+        await Promise.allSettled(unloadedFilters.map(id => FiltersApi.loadFilterRulesFromBackend(id, remote)));
     }
 
-    public static async loadFilters(filtersIds: number[]) {
-        Promise.allSettled(filtersIds.map((id) => this.loadFilter(id)));
+    /**
+     * Force reload enabled common filters metadata and rules from backend
+     *
+     * Called on "use optimized filters" setting switch.
+     *
+     * @param filtersIds - loaded filters ids
+     */
+    public static async reloadEnabledFilters() {
+        const filtersIds = FiltersApi.getEnabledFilters();
+
+        /**
+         * Ignore custom filters
+         */
+        const commonFilters = filtersIds.filter(id => !CustomFilterApi.isCustomFilter(id));
+
+        await FiltersApi.loadMetadata(true);
+
+        await Promise.allSettled(commonFilters.map(id => FiltersApi.loadFilterRulesFromBackend(id, true)));
+
+        await filtersState.enableFilters(filtersIds);
     }
 
-    public static async loadAndEnableFilters(filtersIds: number[]) {
-        await FiltersApi.loadFilters(filtersIds);
-        filtersState.enableFilters(filtersIds);
+    /**
+     * Load and enable fitlers.
+     *
+     * Called on initialization and filter option switch
+     * @param filtersIds - filters ids
+     * @param remote - is metadata and rules loaded from backend
+     */
+    public static async loadAndEnableFilters(filtersIds: number[], remote = true) {
+        await FiltersApi.loadFilters(filtersIds, remote);
+        await filtersState.enableFilters(filtersIds);
     }
 
+    /**
+     * @param filterId - filter id
+     */
     public static async updateFilter(filterId: number): Promise<any> {
-        log.info(`Update filter ${filterId} ...`);
+        log.info(`Update filter ${filterId}`);
 
         const filterMetadata = metadataStorage.getFilter(filterId);
 
@@ -102,15 +144,19 @@ export class FiltersApi {
         }
     }
 
+    /**
+     * Update filters
+     *
+     * @param filtersIds - filter ids
+     */
     public static async updateFilters(filtersIds: number[]) {
         log.info('update filters ...');
 
-        try {
-            await FiltersApi.updateMetadata();
-        } catch (e) {
-            log.error(e);
-            return;
-        }
+        /**
+         * Reload common filters metadata from backend for correct
+         * version matching on update check.
+         */
+        FiltersApi.loadMetadata(true);
 
         const updatedFiltersMetadata = [];
 
@@ -133,6 +179,11 @@ export class FiltersApi {
         return updatedFiltersMetadata;
     }
 
+    /**
+     * Get filter metadata from correct storage.
+     *
+     * @param filterId - filter id
+     */
     public static getFilterMetadata(filterId: number) {
         if (CustomFilterApi.isCustomFilter(filterId)) {
             return CustomFilterApi.getCustomFilterMetadata(filterId);
@@ -140,10 +191,31 @@ export class FiltersApi {
         return metadataStorage.getFilter(filterId);
     }
 
+    /**
+     * Get filters metadata from both common and custom filters storage.
+     */
     public static getFiltersMetadata() {
         return metadataStorage.getFilters().concat(CustomFilterApi.getCustomFiltersMetadata());
     }
 
+    /**
+     * Get enabled filters given the state of the group
+     */
+    public static getEnabledFilters() {
+        const enabledFilters = filtersState.getEnabledFilters();
+        const enableGroups = groupsState.getEnabledGroups();
+
+        return enabledFilters.filter(id => {
+            const filterMetadata = FiltersApi.getFilterMetadata(id);
+
+            return enableGroups.some(groupId => groupId === filterMetadata.groupId);
+        });
+    }
+
+    /**
+     * Checks if common filter need update.
+     * Matches version from metadata with data in filter version storage.
+     */
     private static isFilterNeedUpdate(filterMetadata: any): boolean {
         log.info(`Check if filter ${filterMetadata.filterId} need to update`);
 
@@ -156,40 +228,35 @@ export class FiltersApi {
         return !BrowserUtils.isGreaterOrEqualsVersion(filterVersion.version, filterMetadata.version);
     }
 
+    /**
+     * Download filter rules from backend and update filter state and metadata
+     * @param filterId - filter id
+     * @param remote - is filter rules loaded from backend
+     */
     private static async loadFilterRulesFromBackend(filterId: number, remote: boolean) {
         const isOptimized = SettingsStorage.get(SettingOption.USE_OPTIMIZED_FILTERS);
 
-        try {
-            const rules = await networkService.downloadFilterRules(filterId, remote, isOptimized) as string[];
+        const rules = await networkService.downloadFilterRules(filterId, remote, isOptimized) as string[];
 
-            await FiltersStorage.set(filterId, rules);
+        await FiltersStorage.set(filterId, rules);
 
-            await filtersState.set(filterId, {
-                installed: true,
-                loaded: true,
-                enabled: false,
-            });
+        await filtersState.set(filterId, {
+            installed: true,
+            loaded: true,
+            enabled: false,
+        });
 
-            const {
-                version,
-                expires,
-                timeUpdated,
-            } = metadataStorage.getFilter(filterId);
+        const {
+            version,
+            expires,
+            timeUpdated,
+        } = metadataStorage.getFilter(filterId);
 
-            await filtersVersion.set(filterId, {
-                version,
-                expires,
-                lastUpdateTime: new Date(timeUpdated).getTime(),
-                lastCheckTime: Date.now(),
-            });
-        } catch (e) {
-            await filtersState.set(filterId, {
-                installed: false,
-                loaded: false,
-                enabled: false,
-            });
-
-            throw new Error(e.message);
-        }
+        await filtersVersion.set(filterId, {
+            version,
+            expires,
+            lastUpdateTime: new Date(timeUpdated).getTime(),
+            lastCheckTime: Date.now(),
+        });
     }
 }

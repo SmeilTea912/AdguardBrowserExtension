@@ -51,7 +51,7 @@ export class NetworkService {
         filterId: number,
         forceRemote: boolean,
         useOptimizedFilters: boolean,
-    ): Promise<unknown> {
+    ): Promise<string[]> {
         let url: string;
 
         if (forceRemote || this.settings.localFilterIds.indexOf(filterId) < 0) {

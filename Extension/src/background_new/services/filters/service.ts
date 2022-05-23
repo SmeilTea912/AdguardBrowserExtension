@@ -54,11 +54,11 @@ export class FiltersService {
     }
 
     static async onFiltersUpdate() {
-        const enabledFilters = filtersState.getEnabledFilters();
+        const enabledFilters = FiltersApi.getEnabledFilters();
 
         const updatedFilters = await FiltersApi.updateFilters(enabledFilters);
 
-        filtersState.enableFilters(enabledFilters);
+        await filtersState.enableFilters(enabledFilters);
 
         await Engine.update();
 

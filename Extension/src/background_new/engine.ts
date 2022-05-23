@@ -1,9 +1,7 @@
 import { TsWebExtension, Configuration, MESSAGE_HANDLER_NAME } from '@adguard/tswebextension';
 import { AntiBannerFiltersId } from '../common/constants';
 import { SettingOption } from '../common/settings';
-import { filtersState } from './services/filters/filters-state';
 import { FiltersStorage } from './services/filters/filters-storage';
-import { groupsState } from './services/filters/groups-state';
 import { SettingsService } from './services/settings/settings-service';
 import { SettingsStorage } from './services/settings/settings-storage';
 import { log } from '../common/log';
@@ -49,8 +47,7 @@ export class Engine {
      * Creates tswebextension configuration based on current app state
      */
     private static async getConfiguration(): Promise<Configuration> {
-        const enabledFilters = filtersState.getEnabledFilters();
-        const enabledGroups = groupsState.getEnabledGroups();
+        const enabledFilters = FiltersApi.getEnabledFilters();
 
         const filters = [];
         let userrules = [];
@@ -72,12 +69,6 @@ export class Engine {
                 if (SettingsStorage.get(SettingOption.ALLOWLIST_ENABLED)) {
                     allowlist = rules;
                 }
-                continue;
-            }
-
-            const filterMetadata = FiltersApi.getFilterMetadata(filterId);
-
-            if (!enabledGroups.some((groupId) => groupId === filterMetadata.groupId)) {
                 continue;
             }
 

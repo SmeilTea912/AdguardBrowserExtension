@@ -11,6 +11,7 @@ import { Categories } from '../filters/filters-categories';
 import { listeners } from '../../notifier';
 import { SettingOption } from '../../../common/settings';
 import { FiltersService } from '../filters/service';
+import { FiltersApi } from '../filters/api';
 
 export class SettingsService {
     static async init() {
@@ -52,7 +53,8 @@ export class SettingsService {
         await SettingsStorage.set(key, value);
 
         if (key === SettingOption.USE_OPTIMIZED_FILTERS) {
-            await FiltersService.onFiltersUpdate();
+            await FiltersApi.reloadEnabledFilters();
+            await Engine.update();
         }
 
         listeners.notifyListeners(listeners.SETTING_UPDATED, {

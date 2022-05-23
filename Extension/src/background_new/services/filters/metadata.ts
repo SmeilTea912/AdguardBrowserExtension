@@ -12,61 +12,34 @@ export class MetadataStorage {
         tags: [],
     };
 
+    /**
+     * Parse metadata from local storage
+     */
     async init(): Promise<void> {
-        try {
-            const isPersistant = await this.loadPersistant();
+        log.info('Initialize metadata');
 
-            if (isPersistant) {
-                return;
-            }
-        } catch (e) {
-            log.error(e);
+        const storageData = SettingsStorage.get(SettingOption.METADATA);
+
+        if (storageData) {
+            this.data = JSON.parse(storageData);
         }
 
-        try {
-            await this.loadLocal();
-            return;
-        } catch (e) {
-            log.error(e);
-        }
-
-        try {
-            await this.loadBackend();
-            return;
-        } catch (e) {
-            log.error(e);
-        }
-    }
-
-    async loadPersistant(): Promise<boolean> {
-        log.info('Loading filters metadata from storage...');
-        const data = SettingsStorage.get(SettingOption.METADATA);
-
-        if (!data) {
-            return false;
-        }
-
-        this.data = JSON.parse(data);
-        this.addCustomGroup();
-        await this.updateStorageData();
-        log.info('Filters metadata loaded from storage');
-
-        return true;
-    }
-
-    async loadLocal() {
-        log.info('Loading metadata from local assets...');
-        const data = await networkService.getLocalFiltersMetadata();
-        this.data = data;
         await this.addCustomGroup();
         await this.updateStorageData();
-        log.info('Filters metadata loaded from local assets');
+        log.info('Metadata storage successfully initialize');
     }
 
-    async loadBackend() {
-        log.info('Loading metadata from backend...');
-        const data = await networkService.downloadMetadataFromBackend();
-        this.data = data;
+    /**
+     * Load metadata from external source
+     * @param remote - is metadata loaded from backend
+     */
+    async loadMetadata(remote: boolean) {
+        log.info('Loading metadata');
+
+        this.data = remote
+            ? await networkService.downloadMetadataFromBackend()
+            : await networkService.getLocalFiltersMetadata();
+
         await this.addCustomGroup();
         await this.updateStorageData();
         log.info('Filters metadata loaded from backend');
