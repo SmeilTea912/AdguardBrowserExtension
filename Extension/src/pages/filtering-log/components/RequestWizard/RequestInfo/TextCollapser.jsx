@@ -9,6 +9,7 @@ export const TextCollapser = forwardRef(({
     text,
     width,
     lineCountLimit,
+    collapserButtonMessages,
     canCopy,
     children,
 }, ref) => {
@@ -28,10 +29,20 @@ export const TextCollapser = forwardRef(({
         }
     };
 
-    const collapserButtonText = isCollapsed
-        ? reactTranslator.getMessage('filtering_modal_show_full_url')
-        : reactTranslator.getMessage('filtering_modal_hide_full_url');
+    const defaultShowMessage = 'text_collapser_show_default';
+    const defaultHideMessage = 'text_collapser_hide_default';
 
+    // Pick required collapser button text
+    const {
+        showMessage = defaultShowMessage,
+        hideMessage = defaultHideMessage,
+    } = collapserButtonMessages;
+
+    const collapserButtonText = isCollapsed
+        ? reactTranslator.getMessage(showMessage)
+        : reactTranslator.getMessage(hideMessage);
+
+    // Pick required text style
     const hasCollapsedStyle = isCollapsed && isOverflown;
 
     const collapserClassName = hasCollapsedStyle

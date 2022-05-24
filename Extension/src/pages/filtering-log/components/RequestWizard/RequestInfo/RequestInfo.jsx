@@ -254,6 +254,20 @@ const RequestInfo = observer(() => {
                 lineCountLimit = LINE_COUNT_LIMIT.RULE;
             }
 
+            let showMessage;
+            let hideMessage;
+            if (isRequestUrl) {
+                showMessage = 'text_collapser_show_full_url';
+                hideMessage = 'text_collapser_hide_full_url';
+            } else if (isRule) {
+                showMessage = 'text_collapser_show_full_rule';
+                hideMessage = 'text_collapser_hide_full_rule';
+            }
+            const collapserButtonMessages = {
+                showMessage,
+                hideMessage,
+            };
+
             return (
                 <div key={title} className="request-info">
                     <div className="request-info__key">{title}</div>
@@ -263,6 +277,7 @@ const RequestInfo = observer(() => {
                             ref={isRequestUrl || isRule ? requestTextRef : null}
                             width={textMaxWidth}
                             lineCountLimit={lineCountLimit}
+                            collapserButtonMessages={collapserButtonMessages}
                             collapsed
                             canCopy={canCopyToClipboard}
                         >

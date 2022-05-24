@@ -548,12 +548,6 @@
     "filtering_modal_open_in_new_tab": {
         "message": "Open in a new tab"
     },
-    "filtering_modal_show_full_url": {
-        "message": "Show full URL"
-    },
-    "filtering_modal_hide_full_url": {
-        "message": "Hide full URL"
-    },
     "filtering_modal_copy_to_clipboard": {
         "message": "Copy to clipboard"
     },
@@ -1018,5 +1012,23 @@
     },
     "blocking_pages_btn_proceed": {
         "message": "Proceed anyway"
+    },
+    "text_collapser_show_default": {
+        "message": "Show full text"
+    },
+    "text_collapser_hide_default": {
+        "message": "Hide full text"
+    },
+    "text_collapser_show_full_url": {
+        "message": "Show full URL"
+    },
+    "text_collapser_hide_full_url": {
+        "message": "Hide full URL"
+    },
+    "text_collapser_show_full_rule": {
+        "message": "Show full rule"
+    },
+    "text_collapser_hide_full_rule": {
+        "message": "Hide full rule"
     }
 }
