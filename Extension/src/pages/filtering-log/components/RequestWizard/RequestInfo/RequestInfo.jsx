@@ -23,7 +23,7 @@ import { RequestTypes } from '../../../../../background/utils/request-types';
 import { useOverflowed } from '../../../../common/hooks/useOverflowed';
 import { optionsStorage } from '../../../../options/options-storage';
 import { DEFAULT_MODAL_WIDTH_PX, LINE_COUNT_LIMIT } from '../constants';
-import { TextCollapser } from './TextCollapser';
+import { TextCollapser } from '../../../../common/components/TextCollapser/TextCollapser';
 
 import './request-info.pcss';
 

@@ -1,9 +1,11 @@
 import React, { forwardRef } from 'react';
 import cn from 'classnames';
 
-import { useTextCollapse } from '../../../../common/hooks/useTextCollapse';
-import { reactTranslator } from '../../../../../common/translators/reactTranslator';
-import { CopyToClipboard } from '../../../../common/components/CopyToClipboard';
+import { useTextCollapse } from '../../hooks/useTextCollapse';
+import { reactTranslator } from '../../../../common/translators/reactTranslator';
+import { CopyToClipboard } from '../CopyToClipboard';
+
+import './text-collapser.pcss';
 
 export const TextCollapser = forwardRef(({
     text,
@@ -46,8 +48,8 @@ export const TextCollapser = forwardRef(({
     const hasCollapsedStyle = isCollapsed && isOverflown;
 
     const collapserClassName = hasCollapsedStyle
-        ? 'request-info__text-short'
-        : 'request-info__text-full';
+        ? 'text-collapser__text-short'
+        : 'text-collapser__text-full';
 
     const collapsedProps = hasCollapsedStyle && {
         style: { WebkitLineClamp: lineCountLimit },
@@ -58,9 +60,9 @@ export const TextCollapser = forwardRef(({
             {canCopy ? (
                 <CopyToClipboard
                     ref={ref}
-                    wrapperClassName="request-info__copy-to-clipboard-wrapper"
+                    wrapperClassName="text-collapser__copy-to-clipboard-wrapper"
                     className={cn(
-                        'request-info__copy-to-clipboard',
+                        'text-collapser__copy-to-clipboard',
                         collapserClassName,
                     )}
                     {...collapsedProps}
