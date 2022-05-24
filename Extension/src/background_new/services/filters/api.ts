@@ -8,7 +8,7 @@ import { filtersState } from './filters-state';
 import { FiltersStorage } from './filters-storage';
 import { filtersVersion } from './filters-version';
 import { groupsState } from './groups-state';
-import { i18nMetadata } from './i18n-metadata';
+import { i18nMetadataStorage } from './i18n-metadata';
 import { metadataStorage } from './metadata';
 
 /**
@@ -22,7 +22,9 @@ export class FiltersApi {
      */
     public static async initMetadata(): Promise<void> {
         await metadataStorage.init();
-        await i18nMetadata.init();
+        await i18nMetadataStorage.init();
+        await metadataStorage.applyI18nMetadata(i18nMetadataStorage.data);
+
         await customFilterMetadataStorage.init();
 
         filtersState.init();
@@ -39,6 +41,8 @@ export class FiltersApi {
      */
     public static async loadMetadata(remote: boolean): Promise<void> {
         await metadataStorage.loadMetadata(remote);
+        await i18nMetadataStorage.loadMetadata(remote);
+        await metadataStorage.applyI18nMetadata(i18nMetadataStorage.data);
 
         filtersState.init();
         groupsState.init();

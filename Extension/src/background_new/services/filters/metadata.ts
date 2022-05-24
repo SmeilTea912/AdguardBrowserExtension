@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import browser from 'webextension-polyfill';
 import { log } from '../../../common/log';
 import { networkService } from '../network/network-service';
 import { SettingOption } from '../../../common/settings';
 import { SettingsStorage } from '../settings/settings-storage';
 import { ANTIBANNER_GROUPS_ID, CUSTOM_FILTERS_GROUP_DISPLAY_NUMBER } from '../../../common/constants';
+import { i18n } from '../../utils/i18n';
 
 export class MetadataStorage {
     data = {
@@ -22,6 +24,8 @@ export class MetadataStorage {
 
         if (storageData) {
             this.data = JSON.parse(storageData);
+        } else {
+            this.data = await networkService.getLocalFiltersMetadata();
         }
 
         await this.addCustomGroup();
@@ -90,6 +94,34 @@ export class MetadataStorage {
         await this.updateStorageData();
     }
 
+    /**
+     * Refreshes metadata objects with i18n metadata
+     * @param i18nMetadata
+     */
+    async applyI18nMetadata(i18nMetadata) {
+        const tagsI18n = i18nMetadata.tags;
+        const filtersI18n = i18nMetadata.filters;
+        const groupsI18n = i18nMetadata.groups;
+
+        const { tags, groups, filters } = this.data;
+
+        for (let i = 0; i < tags.length; i += 1) {
+            MetadataStorage.applyFilterTagLocalization(tags[i], tagsI18n);
+        }
+
+        for (let j = 0; j < filters.length; j += 1) {
+            MetadataStorage.applyFilterLocalization(filters[j], filtersI18n);
+        }
+
+        for (let k = 0; k < groups.length; k += 1) {
+            MetadataStorage.applyGroupLocalization(groups[k], groupsI18n);
+        }
+
+        this.data = { tags, groups, filters };
+
+        await this.updateStorageData();
+    }
+
     private async addCustomGroup() {
         if (!this.data[ANTIBANNER_GROUPS_ID.CUSTOM_FILTERS_GROUP_ID]) {
             await this.setGroup(ANTIBANNER_GROUPS_ID.CUSTOM_FILTERS_GROUP_ID, {
@@ -102,6 +134,62 @@ export class MetadataStorage {
 
     private async updateStorageData(): Promise<void> {
         await SettingsStorage.set(SettingOption.METADATA, JSON.stringify(this.data));
+    }
+
+    /**
+     * Localize tag
+     * @param tag
+     * @param i18nMetadata
+     * @private
+     */
+    private static applyFilterTagLocalization(tag, i18nMetadata) {
+        const { tagId } = tag;
+        const localizations = i18nMetadata[tagId];
+        if (localizations) {
+            const locale = i18n.normalize(localizations, browser.i18n.getUILanguage());
+            const localization = localizations[locale];
+            if (localization) {
+                tag.name = localization.name;
+                tag.description = localization.description;
+            }
+        }
+    }
+
+    /**
+     * Localize filter
+     * @param filter
+     * @param i18nMetadata
+     * @private
+     */
+    private static applyFilterLocalization(filter, i18nMetadata) {
+        const { filterId } = filter;
+        const localizations = i18nMetadata[filterId];
+        if (localizations) {
+            const locale = i18n.normalize(localizations, browser.i18n.getUILanguage());
+            const localization = localizations[locale];
+            if (localization) {
+                filter.name = localization.name;
+                filter.description = localization.description;
+            }
+        }
+    }
+
+    /**
+     * Localize group
+     * @param group
+     * @param i18nMetadata
+     * @private
+     */
+    private static applyGroupLocalization(group, i18nMetadata) {
+        const { groupId } = group;
+        const localizations = i18nMetadata[groupId];
+        if (localizations) {
+            const locale = i18n.normalize(localizations, browser.i18n.getUILanguage());
+            const localization = localizations[locale];
+            if (localization) {
+                group.groupName = localization.name;
+            }
+        }
     }
 }
 

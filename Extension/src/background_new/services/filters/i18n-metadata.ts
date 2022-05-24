@@ -4,134 +4,45 @@ import { networkService } from '../network/network-service';
 import { SettingOption } from '../../../common/settings';
 import { SettingsStorage } from '../settings/settings-storage';
 
-export class I18nMetadata {
+export class I18nMetadataStorage {
     data = {
-        filters: [],
-        groups: [],
-        tags: [],
+        filters: {},
+        groups: {},
+        tags: {},
     };
 
+    /**
+     * Parse i18n metadata from local storage
+     */
     async init(): Promise<void> {
-        log.info('Loading filters i18n metadata from storage...');
-        const isPersistant = await this.loadPersistant();
+        log.info('Initialize i18n metadata');
 
-        if (isPersistant) {
-            log.info('Filters i18n metadata loaded from storage');
-            return;
+        const storageData = SettingsStorage.get(SettingOption.I18N_METADATA);
+
+        if (storageData) {
+            this.data = JSON.parse(storageData);
+        } else {
+            this.data = await networkService.getLocalFiltersI18nMetadata();
         }
 
-        log.info('Loading i18n metadata from local assets...');
-        const islocal = await this.loadLocal();
-
-        if (islocal) {
-            log.info('Filters i18n metadata loaded from local assets');
-            return;
-        }
-
-        log.info('Loading metadata from backend...');
-        const isBackend = await this.loadBackend();
-
-        if (isBackend) {
-            log.info('Filters i18n metadata loaded from backend');
-            return;
-        }
-
-        log.info('Can`t load i18n metadata');
-    }
-
-    async loadPersistant(): Promise<boolean> {
-        const data = SettingsStorage.get(SettingOption.I18N_METADATA);
-
-        if (!data) {
-            return false;
-        }
-
-        try {
-            this.data = JSON.parse(data);
-            return true;
-        } catch (e) {
-            console.error(e);
-            return false;
-        }
-    }
-
-    async loadLocal(): Promise<boolean> {
-        try {
-            const data = await networkService.getLocalFiltersI18nMetadata();
-
-            if (!data) {
-                return false;
-            }
-
-            this.data = data;
-            await this.updateStorageData();
-            return true;
-        } catch (e) {
-            console.error(e);
-            return false;
-        }
-    }
-
-    async loadBackend(): Promise<boolean> {
-        try {
-            const data = await networkService.downloadI18nMetadataFromBackend();
-
-            if (!data) {
-                return false;
-            }
-
-            this.data = data;
-            await this.updateStorageData();
-            return true;
-        } catch (e) {
-            console.error(e);
-            return false;
-        }
-    }
-
-    getFilter(filterId: number) {
-        return this.data.filters.find(el => el.filterId === filterId);
-    }
-
-    getFilters() {
-        return this.data.filters;
-    }
-
-    getGroup(groupId: number) {
-        return this.data.groups.find(el => el.groupId === groupId);
-    }
-
-    getGroups() {
-        return this.data.groups;
-    }
-
-    getTag(tagId: number) {
-        return this.data.tags.find(el => el.tagId === tagId);
-    }
-
-    getTags() {
-        return this.data.tags;
-    }
-
-    async setFilter(filterId: number, filter: any) {
-        const filters = this.getFilters().filter(f => f.filterId !== filterId);
-        filters.push(filter);
-        this.data.filters = filters;
         await this.updateStorageData();
+
+        log.info('I18n metadata storage successfully initialize');
     }
 
-    async setGroup(groupId: number, group: any) {
-        const groups = this.getGroups().filter(g => g.groupId !== groupId);
-        groups.push(group);
-        this.data.groups = groups;
-        await this.updateStorageData();
-    }
+    /**
+     * Load metadata from external source
+     * @param remote - is metadata loaded from backend
+     */
+    async loadMetadata(remote: boolean) {
+        log.info('Loading metadata');
 
-    async setTag(tagId: number, tag: any) {
-        const tags = this.getTags().filter(t => t.tagId !== tagId);
-        tags.push(tag);
-        this.data.tags = tags;
+        this.data = remote
+            ? await networkService.downloadI18nMetadataFromBackend()
+            : await networkService.getLocalFiltersI18nMetadata();
+
         await this.updateStorageData();
+        log.info('Filters metadata loaded from backend');
     }
 
     private async updateStorageData(): Promise<void> {
@@ -139,4 +50,4 @@ export class I18nMetadata {
     }
 }
 
-export const i18nMetadata = new I18nMetadata();
+export const i18nMetadataStorage = new I18nMetadataStorage();
