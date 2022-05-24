@@ -1,17 +1,15 @@
 import { useState, useLayoutEffect } from 'react';
 import { measureTextWidth } from '../../helpers';
 
-export const useTextCollapse = (text, width, defaultCollapsed) => {
-    const LINE_COUNT_LIMIT = 3;
-
+export const useTextCollapse = (text, width, lineCountLimit, defaultCollapsed) => {
     const [isCollapsed, setCollapsed] = useState(defaultCollapsed);
     const [isOverflown, setOverflown] = useState(false);
 
     useLayoutEffect(() => {
         const textWidth = measureTextWidth(text);
-        const isTextOverflown = textWidth > LINE_COUNT_LIMIT * width;
+        const isTextOverflown = textWidth > lineCountLimit * width;
         setOverflown(isTextOverflown);
-    }, [text, width]);
+    }, [text, width, lineCountLimit]);
 
     const toggleCollapsed = () => {
         setCollapsed(!isCollapsed);

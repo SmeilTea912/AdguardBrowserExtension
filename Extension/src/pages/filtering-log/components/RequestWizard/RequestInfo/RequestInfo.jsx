@@ -22,7 +22,7 @@ import { StatusMode, getStatusMode } from '../../../filteringLogStatus';
 import { RequestTypes } from '../../../../../background/utils/request-types';
 import { useOverflowed } from '../../../../common/hooks/useOverflowed';
 import { optionsStorage } from '../../../../options/options-storage';
-import { DEFAULT_MODAL_WIDTH_PX } from '../constants';
+import { DEFAULT_MODAL_WIDTH_PX, LINE_COUNT_LIMIT } from '../constants';
 import { TextCollapser } from './TextCollapser';
 
 import './request-info.pcss';
@@ -132,7 +132,7 @@ const RequestInfo = observer(() => {
     const contentRef = useRef();
     const contentOverflowed = useOverflowed(contentRef);
 
-    const requestUrlRef = useRef(null);
+    const requestTextRef = useRef(null);
 
     const { logStore, wizardStore } = useContext(rootStore);
 
@@ -140,14 +140,14 @@ const RequestInfo = observer(() => {
 
     const { selectedEvent, filtersMetadata } = logStore;
 
-    const [urlMaxWidth, setUrlMaxWidth] = useState(DEFAULT_MODAL_WIDTH_PX);
+    const [textMaxWidth, setTextMaxWidth] = useState(DEFAULT_MODAL_WIDTH_PX);
 
     useLayoutEffect(() => {
         const MODAL_PADDINGS_PX = 70;
         const startModalWidth = optionsStorage.getItem(optionsStorage.KEYS.REQUEST_INFO_MODAL_WIDTH)
             || DEFAULT_MODAL_WIDTH_PX;
 
-        setUrlMaxWidth(startModalWidth - MODAL_PADDINGS_PX);
+        setTextMaxWidth(startModalWidth - MODAL_PADDINGS_PX);
     }, [selectedEvent.eventId]);
 
     const eventPartsMap = {
@@ -249,14 +249,20 @@ const RequestInfo = observer(() => {
 
             const canCopyToClipboard = isRequestUrl || isRule || isFilterName;
 
+            let lineCountLimit = LINE_COUNT_LIMIT.REQUEST_URL;
+            if (isRule) {
+                lineCountLimit = LINE_COUNT_LIMIT.RULE;
+            }
+
             return (
                 <div key={title} className="request-info">
                     <div className="request-info__key">{title}</div>
                     <div className="request-info__value">
                         <TextCollapser
                             text={data}
-                            ref={isRequestUrl ? requestUrlRef : null}
-                            width={urlMaxWidth}
+                            ref={isRequestUrl || isRule ? requestTextRef : null}
+                            width={textMaxWidth}
+                            lineCountLimit={lineCountLimit}
                             collapsed
                             canCopy={canCopyToClipboard}
                         >

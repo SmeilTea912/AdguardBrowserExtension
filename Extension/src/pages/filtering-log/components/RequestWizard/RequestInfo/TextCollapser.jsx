@@ -8,10 +8,15 @@ import { CopyToClipboard } from '../../../../common/components/CopyToClipboard';
 export const TextCollapser = forwardRef(({
     text,
     width,
+    lineCountLimit,
     canCopy,
     children,
 }, ref) => {
-    const [isCollapsed, isOverflown, toggleCollapsed] = useTextCollapse(text, width, true);
+    const [
+        isCollapsed,
+        isOverflown,
+        toggleCollapsed,
+    ] = useTextCollapse(text, width, lineCountLimit, true);
 
     const handleClick = () => {
         toggleCollapsed();
@@ -27,9 +32,15 @@ export const TextCollapser = forwardRef(({
         ? reactTranslator.getMessage('filtering_modal_show_full_url')
         : reactTranslator.getMessage('filtering_modal_hide_full_url');
 
-    const collapserClassName = isCollapsed && isOverflown
-        ? 'request-info__url-short'
-        : 'request-info__url-full';
+    const hasCollapsedStyle = isCollapsed && isOverflown;
+
+    const collapserClassName = hasCollapsedStyle
+        ? 'request-info__text-short'
+        : 'request-info__text-full';
+
+    const collapsedProps = hasCollapsedStyle && {
+        style: { WebkitLineClamp: lineCountLimit },
+    };
 
     return (
         <>
@@ -41,10 +52,18 @@ export const TextCollapser = forwardRef(({
                         'request-info__copy-to-clipboard',
                         collapserClassName,
                     )}
+                    {...collapsedProps}
                 >
                     {text}
                 </CopyToClipboard>
-            ) : <div className={collapserClassName}>{text}</div>}
+            ) : (
+                <div
+                    className={collapserClassName}
+                    {...collapsedProps}
+                >
+                    {text}
+                </div>
+            )}
 
             {isOverflown && (
                 <div
