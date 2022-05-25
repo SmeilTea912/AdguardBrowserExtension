@@ -31,13 +31,13 @@ export const TextCollapser = forwardRef(({
         }
     };
 
-    const defaultShowMessage = 'text_collapser_show_default';
-    const defaultHideMessage = 'text_collapser_hide_default';
+    const DEFAULT_SHOW_MESSAGE = 'text_collapser_show_default';
+    const DEFAULT_HIDE_MESSAGE = 'text_collapser_hide_default';
 
     // Pick required collapser button text
     const {
-        showMessage = defaultShowMessage,
-        hideMessage = defaultHideMessage,
+        showMessage = DEFAULT_SHOW_MESSAGE,
+        hideMessage = DEFAULT_HIDE_MESSAGE,
     } = collapserButtonMessages;
 
     const collapserButtonText = isCollapsed
