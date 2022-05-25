@@ -3,7 +3,7 @@ import { AntiBannerFiltersId } from '../common/constants';
 import { SettingOption } from '../common/settings';
 import { FiltersStorage } from './services/filters/filters-storage';
 import { SettingsService } from './services/settings/settings-service';
-import { SettingsStorage } from './services/settings/settings-storage';
+import { settingsStorage } from './services/settings/settings-storage';
 import { log } from '../common/log';
 import { listeners } from './notifier';
 import { FiltersApi } from './services/filters/api';
@@ -53,23 +53,21 @@ export class Engine {
         let userrules = [];
         let allowlist = [];
 
-        for (let i = 0; i < enabledFilters.length; i += 1) {
-            const filterId = enabledFilters[i];
-
-            const rules = FiltersStorage.get(filterId);
+        const tasks = enabledFilters.map(async (filterId) => {
+            const rules = await FiltersStorage.get(filterId);
 
             if (filterId === AntiBannerFiltersId.USER_FILTER_ID) {
-                if (SettingsStorage.get(SettingOption.USER_FILTER_ENABLED)) {
+                if (settingsStorage.get(SettingOption.USER_FILTER_ENABLED)) {
                     userrules = rules;
                 }
-                continue;
+                return;
             }
 
             if (filterId === AntiBannerFiltersId.ALLOWLIST_FILTER_ID) {
-                if (SettingsStorage.get(SettingOption.ALLOWLIST_ENABLED)) {
+                if (settingsStorage.get(SettingOption.ALLOWLIST_ENABLED)) {
                     allowlist = rules;
                 }
-                continue;
+                return;
             }
 
             const rulesTexts = rules.join('\n');
@@ -78,7 +76,9 @@ export class Engine {
                 filterId,
                 content: rulesTexts,
             });
-        }
+        });
+
+        await Promise.all(tasks);
 
         const settings = SettingsService.getConfiguration();
 

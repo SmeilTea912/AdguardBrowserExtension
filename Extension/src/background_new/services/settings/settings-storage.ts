@@ -47,8 +47,10 @@ export class SettingsStorage {
         [SettingOption.DISABLE_SHOW_CONTEXT_MENU]: false,
     };
 
-    static async init() {
-        const settings = storage.get(ADGUARD_SETTINGS_KEY) as Partial<Settings>;
+    settings = SettingsStorage.defaultSettings;
+
+    async init() {
+        const settings = await storage.get(ADGUARD_SETTINGS_KEY) as Partial<Settings>;
 
         /**
          * set defaults on first run
@@ -59,74 +61,57 @@ export class SettingsStorage {
         }
 
         /**
-         * check settings fields before initialization
+         * Use Object.assign to prevent setting fields mismatch,
+         * when partial data stored
          */
-
-        const keys = Object.keys(SettingsStorage.defaultSettings);
-
-        for (let i = 0; i < keys.length; i += 1) {
-            const key = keys[i];
-
-            if (!settings[key]) {
-                settings[key] = SettingsStorage.defaultSettings[key];
-            }
-        }
+        this.settings = { ...SettingsStorage.defaultSettings, ...settings };
 
         await storage.set(ADGUARD_SETTINGS_KEY, settings);
     }
 
-    static async set<T extends SettingOption>(key: T, value: Settings[T]): Promise<void> {
-        const settings = storage.get(ADGUARD_SETTINGS_KEY);
+    async set<T extends SettingOption>(key: T, value: Settings[T]): Promise<void> {
+        this.settings[key] = value;
 
-        settings[key] = value;
-
-        await storage.set(ADGUARD_SETTINGS_KEY, settings);
+        await storage.set(ADGUARD_SETTINGS_KEY, this.settings);
     }
 
-    static get<T extends SettingOption>(key: T): Settings[T] {
-        const settings = storage.get(ADGUARD_SETTINGS_KEY);
-
-        return settings[key] as Settings[T];
+    get<T extends SettingOption>(key: T): Settings[T] {
+        return this.settings[key];
     }
 
-    static async delete<T extends SettingOption>(key: T) {
-        const settings = storage.get(ADGUARD_SETTINGS_KEY);
+    async delete<T extends SettingOption>(key: T) {
+        delete this.settings[key];
 
-        delete settings[key];
-
-        await storage.set(ADGUARD_SETTINGS_KEY, settings);
+        await storage.set(ADGUARD_SETTINGS_KEY, this.settings);
     }
 
-    static getData() {
-        const settings = storage.get(ADGUARD_SETTINGS_KEY);
-
+    getData() {
         return {
             names: SettingOption,
             defaultValues: SettingsStorage.defaultSettings,
-            values: settings,
+            values: this.settings,
         };
     }
 
-    static async reset() {
+    async reset() {
+        this.settings = SettingsStorage.defaultSettings;
         await storage.set(ADGUARD_SETTINGS_KEY, SettingsStorage.defaultSettings);
     }
 
-    static getConfiguration() {
-        const settings = storage.get(ADGUARD_SETTINGS_KEY) as Settings;
-
+    getConfiguration() {
         return {
-            collectStats: !settings[SettingOption.DISABLE_COLLECT_HITS],
-            allowlistInverted: !settings[SettingOption.DEFAULT_ALLOWLIST_MODE],
+            collectStats: !this.settings[SettingOption.DISABLE_COLLECT_HITS],
+            allowlistInverted: !this.settings[SettingOption.DEFAULT_ALLOWLIST_MODE],
             stealth: {
-                blockChromeClientData: settings[SettingOption.BLOCK_CHROME_CLIENT_DATA],
-                hideReferrer: settings[SettingOption.HIDE_REFERRER],
-                hideSearchQueries: settings[SettingOption.HIDE_SEARCH_QUERIES],
-                sendDoNotTrack: settings[SettingOption.SEND_DO_NOT_TRACK],
-                blockWebRTC: settings[SettingOption.BLOCK_WEBRTC],
-                selfDestructThirdPartyCookies: settings[SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES],
-                selfDestructThirdPartyCookiesTime: settings[SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES_TIME],
-                selfDestructFirstPartyCookies: settings[SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES],
-                selfDestructFirstPartyCookiesTime: settings[SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES_TIME],
+                blockChromeClientData: this.settings[SettingOption.BLOCK_CHROME_CLIENT_DATA],
+                hideReferrer: this.settings[SettingOption.HIDE_REFERRER],
+                hideSearchQueries: this.settings[SettingOption.HIDE_SEARCH_QUERIES],
+                sendDoNotTrack: this.settings[SettingOption.SEND_DO_NOT_TRACK],
+                blockWebRTC: this.settings[SettingOption.BLOCK_WEBRTC],
+                selfDestructThirdPartyCookies: this.settings[SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES],
+                selfDestructThirdPartyCookiesTime: this.settings[SettingOption.SELF_DESTRUCT_THIRD_PARTY_COOKIES_TIME],
+                selfDestructFirstPartyCookies: this.settings[SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES],
+                selfDestructFirstPartyCookiesTime: this.settings[SettingOption.SELF_DESTRUCT_FIRST_PARTY_COOKIES_TIME],
             },
         };
     }
@@ -146,3 +131,5 @@ export class SettingsStorage {
         return result.join('') + suffix;
     }
 }
+
+export const settingsStorage = new SettingsStorage();

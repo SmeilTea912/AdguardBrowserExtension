@@ -3,9 +3,10 @@ import browser from 'webextension-polyfill';
 import { log } from '../../../common/log';
 import { networkService } from '../network/network-service';
 import { SettingOption } from '../../../common/settings';
-import { SettingsStorage } from '../settings/settings-storage';
+import { settingsStorage } from '../settings/settings-storage';
 import { ANTIBANNER_GROUPS_ID, CUSTOM_FILTERS_GROUP_DISPLAY_NUMBER } from '../../../common/constants';
 import { i18n } from '../../utils/i18n';
+import { translator } from '../../../common/translators/translator';
 
 export class MetadataStorage {
     data = {
@@ -20,7 +21,7 @@ export class MetadataStorage {
     async init(): Promise<void> {
         log.info('Initialize metadata');
 
-        const storageData = SettingsStorage.get(SettingOption.METADATA);
+        const storageData = settingsStorage.get(SettingOption.METADATA);
 
         if (storageData) {
             this.data = JSON.parse(storageData);
@@ -123,17 +124,15 @@ export class MetadataStorage {
     }
 
     private async addCustomGroup() {
-        if (!this.data[ANTIBANNER_GROUPS_ID.CUSTOM_FILTERS_GROUP_ID]) {
-            await this.setGroup(ANTIBANNER_GROUPS_ID.CUSTOM_FILTERS_GROUP_ID, {
-                displayNumber: CUSTOM_FILTERS_GROUP_DISPLAY_NUMBER,
-                groupId: ANTIBANNER_GROUPS_ID.CUSTOM_FILTERS_GROUP_ID,
-                groupName: 'Custom',
-            });
-        }
+        await this.setGroup(ANTIBANNER_GROUPS_ID.CUSTOM_FILTERS_GROUP_ID, {
+            displayNumber: CUSTOM_FILTERS_GROUP_DISPLAY_NUMBER,
+            groupId: ANTIBANNER_GROUPS_ID.CUSTOM_FILTERS_GROUP_ID,
+            groupName: translator.getMessage('options_antibanner_custom_group'),
+        });
     }
 
     private async updateStorageData(): Promise<void> {
-        await SettingsStorage.set(SettingOption.METADATA, JSON.stringify(this.data));
+        await settingsStorage.set(SettingOption.METADATA, JSON.stringify(this.data));
     }
 
     /**

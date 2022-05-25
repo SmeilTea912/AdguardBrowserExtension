@@ -2,7 +2,7 @@ import { log } from '../../../common/log';
 import { SettingOption } from '../../../common/settings';
 import { BrowserUtils } from '../../utils/browser-utils';
 import { networkService } from '../network/network-service';
-import { SettingsStorage } from '../settings/settings-storage';
+import { settingsStorage } from '../settings/settings-storage';
 import { CustomFilterApi, customFilterMetadataStorage } from './custom';
 import { filtersState } from './filters-state';
 import { FiltersStorage } from './filters-storage';
@@ -56,7 +56,7 @@ export class FiltersApi {
      *
      * @param filterId - filter id
      */
-    public static async isFilterRulesIsLoaded(filterId: number) {
+    public static isFilterRulesIsLoaded(filterId: number) {
         const filterState = filtersState.get(filterId);
 
         return filterState?.loaded;
@@ -238,7 +238,7 @@ export class FiltersApi {
      * @param remote - is filter rules loaded from backend
      */
     private static async loadFilterRulesFromBackend(filterId: number, remote: boolean) {
-        const isOptimized = SettingsStorage.get(SettingOption.USE_OPTIMIZED_FILTERS);
+        const isOptimized = settingsStorage.get(SettingOption.USE_OPTIMIZED_FILTERS);
 
         const rules = await networkService.downloadFilterRules(filterId, remote, isOptimized) as string[];
 

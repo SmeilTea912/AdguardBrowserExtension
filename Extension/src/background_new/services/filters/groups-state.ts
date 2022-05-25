@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { SettingOption } from '../../../common/settings';
-import { SettingsStorage } from '../settings/settings-storage';
+import { settingsStorage } from '../settings/settings-storage';
 import { metadataStorage } from './metadata';
 
 export type GroupStateData = {
@@ -17,7 +17,7 @@ export class GroupsState {
     init() {
         const groupsMetadata = metadataStorage.getGroups();
 
-        const storageData = SettingsStorage.get(SettingOption.GROUPS_STATE_PROP);
+        const storageData = settingsStorage.get(SettingOption.GROUPS_STATE_PROP);
 
         const data = storageData ? JSON.parse(storageData) : {};
 
@@ -73,7 +73,7 @@ export class GroupsState {
     }
 
     private async updateStorageData() {
-        await SettingsStorage.set(SettingOption.GROUPS_STATE_PROP, JSON.stringify(this.data));
+        await settingsStorage.set(SettingOption.GROUPS_STATE_PROP, JSON.stringify(this.data));
     }
 }
 

@@ -17,7 +17,7 @@
 import browser from 'webextension-polyfill';
 
 import { SettingOption } from '../../common/settings';
-import { SettingsStorage } from '../services/settings/settings-storage';
+import { settingsStorage } from '../services/settings/settings-storage';
 
 // TODO: class instead function
 
@@ -61,7 +61,7 @@ Version.prototype.compare = function (o) {
 
 export class BrowserUtils {
     static getExtensionParams() {
-        const clientId = encodeURIComponent(SettingsStorage.get(SettingOption.CLIENT_ID));
+        const clientId = encodeURIComponent(settingsStorage.get(SettingOption.CLIENT_ID));
         const locale = encodeURIComponent(browser.i18n.getUILanguage());
         const version = encodeURIComponent(browser.runtime.getManifest().version);
         const id = encodeURIComponent(browser.runtime.id);

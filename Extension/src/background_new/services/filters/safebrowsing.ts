@@ -4,7 +4,7 @@ import { LRUMap } from 'lru_map';
 import SHA256 from 'crypto-js/sha256';
 import { log } from '../../../common/log';
 import { utils } from '../../../background/utils/common';
-import { SettingsStorage } from '../settings/settings-storage';
+import { settingsStorage } from '../settings/settings-storage';
 import { networkService } from '../network/network-service';
 import { LruCache } from '../../utils/lru-cache';
 import { lazyGet } from '../../utils/lazy';
@@ -97,7 +97,7 @@ const safebrowsing = (function () {
      * @private
      */
     function resumeSafebrowsing() {
-        SettingsStorage.delete(suspendedFromProperty as SettingOption);
+        settingsStorage.delete(suspendedFromProperty as SettingOption);
     }
 
     /**
@@ -105,7 +105,7 @@ const safebrowsing = (function () {
      * @private
      */
     function suspendSafebrowsing() {
-        SettingsStorage.set(suspendedFromProperty as SettingOption, Date.now());
+        settingsStorage.set(suspendedFromProperty as SettingOption, Date.now());
     }
 
     /**
@@ -226,7 +226,7 @@ const safebrowsing = (function () {
 
         // check safebrowsing is active
         const now = Date.now();
-        const suspendedFrom = SettingsStorage.get(suspendedFromProperty as SettingOption) as number - 0;
+        const suspendedFrom = settingsStorage.get(suspendedFromProperty as SettingOption) as number - 0;
         if (suspendedFrom && (now - suspendedFrom) < SUSPEND_TTL) {
             return;
         }
@@ -292,7 +292,7 @@ const safebrowsing = (function () {
      * @param referrerUrl Referrer URL
      */
     const checkSafebrowsingFilter = async function (requestUrl, referrerUrl) {
-        const safebrowsingDisabled = SettingsStorage.get(SettingOption.DISABLE_SAFEBROWSING);
+        const safebrowsingDisabled = settingsStorage.get(SettingOption.DISABLE_SAFEBROWSING);
 
         if (safebrowsingDisabled) {
             return;

@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { SettingOption } from '../../../common/settings';
-import { SettingsStorage } from '../settings/settings-storage';
+import { settingsStorage } from '../settings/settings-storage';
 import { FiltersApi } from './api';
 
 export type FilterVersionData = {
@@ -16,7 +16,7 @@ export class FiltersVersion {
     init() {
         const filtersMetadata = FiltersApi.getFiltersMetadata();
 
-        const storageData = SettingsStorage.get(SettingOption.FILTERS_VERSION_PROP);
+        const storageData = settingsStorage.get(SettingOption.FILTERS_VERSION_PROP);
 
         const data = storageData ? JSON.parse(storageData) : {};
 
@@ -63,7 +63,7 @@ export class FiltersVersion {
     }
 
     private async updateStorageData() {
-        await SettingsStorage.set(SettingOption.FILTERS_VERSION_PROP, JSON.stringify(this.data));
+        await settingsStorage.set(SettingOption.FILTERS_VERSION_PROP, JSON.stringify(this.data));
     }
 }
 

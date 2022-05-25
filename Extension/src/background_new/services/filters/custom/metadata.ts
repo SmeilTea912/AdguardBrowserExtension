@@ -1,5 +1,5 @@
 import { SettingOption } from '../../../../common/settings';
-import { SettingsStorage } from '../../settings/settings-storage';
+import { settingsStorage } from '../../settings/settings-storage';
 
 export type CustomFilterMetadata = {
     filterId: number,
@@ -18,7 +18,7 @@ export class CustomFilterMetadataStorage {
     data: CustomFilterMetadata[] = [];
 
     async init() {
-        const storageData = SettingsStorage.get(SettingOption.CUSTOM_FILTERS);
+        const storageData = settingsStorage.get(SettingOption.CUSTOM_FILTERS);
 
         const data = storageData ? JSON.parse(storageData) : [];
 
@@ -52,7 +52,7 @@ export class CustomFilterMetadataStorage {
     }
 
     private async updateStorageData(): Promise<void> {
-        await SettingsStorage.set(SettingOption.CUSTOM_FILTERS, JSON.stringify(this.data));
+        await settingsStorage.set(SettingOption.CUSTOM_FILTERS, JSON.stringify(this.data));
     }
 }
 

@@ -2,7 +2,7 @@
 import browser from 'webextension-polyfill';
 import { MessageType } from '../../../common/messages';
 import { messageHandler } from '../../message-handler';
-import { SettingsStorage } from './settings-storage';
+import { settingsStorage } from './settings-storage';
 import { UserAgent } from '../../../common/user-agent';
 import { AntiBannerFiltersId } from '../../../common/constants';
 
@@ -15,7 +15,7 @@ import { FiltersApi } from '../filters/api';
 
 export class SettingsService {
     static async init() {
-        await SettingsStorage.init();
+        await settingsStorage.init();
         messageHandler.addListener(MessageType.GET_OPTIONS_DATA, SettingsService.getOptionsData);
         messageHandler.addListener(MessageType.RESET_SETTINGS, SettingsService.resetSettings);
         messageHandler.addListener(MessageType.CHANGE_USER_SETTING, SettingsService.changeUserSettings);
@@ -23,7 +23,7 @@ export class SettingsService {
 
     static getOptionsData() {
         return Promise.resolve({
-            settings: SettingsStorage.getData(),
+            settings: settingsStorage.getData(),
             appVersion: browser.runtime.getManifest().version,
             environmentOptions: {
                 isChrome: UserAgent.isChrome,
@@ -40,17 +40,17 @@ export class SettingsService {
     }
 
     static getConfiguration() {
-        return SettingsStorage.getConfiguration();
+        return settingsStorage.getConfiguration();
     }
 
     static async resetSettings() {
-        await SettingsStorage.reset();
+        await settingsStorage.reset();
         return true;
     }
 
     static async changeUserSettings(message) {
         const { key, value } = message.data;
-        await SettingsStorage.set(key, value);
+        await settingsStorage.set(key, value);
 
         if (key === SettingOption.USE_OPTIMIZED_FILTERS) {
             await FiltersApi.reloadEnabledFilters();

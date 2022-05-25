@@ -6,7 +6,7 @@ import { UserAgent } from '../../common/user-agent';
 import { TabsApi } from '../extension-api/tabs';
 import { Engine } from '../engine';
 import { UrlUtils } from '../utils/url';
-import { SettingsStorage } from './settings/settings-storage';
+import { settingsStorage } from './settings/settings-storage';
 import { SettingOption } from '../../common/settings';
 
 export class UiService {
@@ -121,13 +121,13 @@ export class UiService {
     }
 
     static getBrowserSecurityString(): string {
-        const isEnabled = !SettingsStorage.get(SettingOption.DISABLE_SAFEBROWSING);
+        const isEnabled = !settingsStorage.get(SettingOption.DISABLE_SAFEBROWSING);
         return `&browsing_security.enabled=${isEnabled}`;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     static getStealthString(filterIds: number[]): string {
-        const stealthEnabled = !SettingsStorage.get(SettingOption.DISABLE_STEALTH_MODE);
+        const stealthEnabled = !settingsStorage.get(SettingOption.DISABLE_STEALTH_MODE);
 
         if (!stealthEnabled) {
             return '&stealth.enabled=false';
@@ -167,7 +167,7 @@ export class UiService {
 
         const stealthOptionsString = stealthOptions.map((option) => {
             const { queryKey, settingKey, settingValueKey } = option;
-            const setting = SettingsStorage.get(settingKey);
+            const setting = settingsStorage.get(settingKey);
             let settingString: string;
             if (!setting) {
                 return '';
@@ -175,7 +175,7 @@ export class UiService {
             if (!settingValueKey) {
                 settingString = setting.toString();
             } else {
-                settingString = SettingsStorage.get(settingValueKey).toString();
+                settingString = settingsStorage.get(settingValueKey).toString();
             }
             return `stealth.${queryKey}=${encodeURIComponent(settingString)}`;
         })

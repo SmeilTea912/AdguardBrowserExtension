@@ -2,7 +2,7 @@
 import { log } from '../../../common/log';
 import { networkService } from '../network/network-service';
 import { SettingOption } from '../../../common/settings';
-import { SettingsStorage } from '../settings/settings-storage';
+import { settingsStorage } from '../settings/settings-storage';
 
 export class I18nMetadataStorage {
     data = {
@@ -17,7 +17,7 @@ export class I18nMetadataStorage {
     async init(): Promise<void> {
         log.info('Initialize i18n metadata');
 
-        const storageData = SettingsStorage.get(SettingOption.I18N_METADATA);
+        const storageData = settingsStorage.get(SettingOption.I18N_METADATA);
 
         if (storageData) {
             this.data = JSON.parse(storageData);
@@ -31,7 +31,7 @@ export class I18nMetadataStorage {
     }
 
     /**
-     * Load metadata from external source
+     * Load i18n metadata from external source
      * @param remote - is metadata loaded from backend
      */
     async loadMetadata(remote: boolean) {
@@ -46,7 +46,7 @@ export class I18nMetadataStorage {
     }
 
     private async updateStorageData(): Promise<void> {
-        SettingsStorage.set(SettingOption.I18N_METADATA, JSON.stringify(this.data));
+        settingsStorage.set(SettingOption.I18N_METADATA, JSON.stringify(this.data));
     }
 }
 

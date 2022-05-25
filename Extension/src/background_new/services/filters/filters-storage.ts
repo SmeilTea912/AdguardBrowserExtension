@@ -1,5 +1,8 @@
 import { storage } from '../../storage';
 
+/**
+ * Encapsulates interaction with stored filter rules
+ */
 export class FiltersStorage {
     static async set(filterId: number, filter: string[]): Promise<void> {
         const key = FiltersStorage.getFilterKey(filterId);
@@ -7,9 +10,9 @@ export class FiltersStorage {
         await storage.set(key, filter);
     }
 
-    static get(filterId: number): string[] {
+    static async get(filterId: number): Promise<string[]> {
         const key = FiltersStorage.getFilterKey(filterId);
-        return storage.get(key) as string[];
+        return storage.get(key) as Promise<string[]>;
     }
 
     static async remove(filterId: number) {

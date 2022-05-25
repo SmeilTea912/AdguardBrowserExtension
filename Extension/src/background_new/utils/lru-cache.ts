@@ -16,7 +16,7 @@
  */
 
 import { LRUMap } from 'lru_map';
-import { SettingsStorage } from '../services/settings/settings-storage';
+import { settingsStorage } from '../services/settings/settings-storage';
 import { log } from '../../common/log';
 
 /**
@@ -36,7 +36,7 @@ export function LruCache(storagePropertyName: any, size?: number) {
     function getCacheFromLocalStorage() {
         let entries = null;
         try {
-            const json = SettingsStorage.get(storagePropertyName);
+            const json = settingsStorage.get(storagePropertyName);
             if (json) {
                 const data = JSON.parse(json);
                 entries = data.map(x => [x.key, x.value]);
@@ -44,7 +44,7 @@ export function LruCache(storagePropertyName: any, size?: number) {
         } catch (ex) {
             // ignore
             log.error('Error read from {0} cache, cause: {1}', storagePropertyName, ex);
-            SettingsStorage.delete(storagePropertyName);
+            settingsStorage.delete(storagePropertyName);
         }
 
         return new LRUMap(maxCacheSize, entries);
@@ -52,7 +52,7 @@ export function LruCache(storagePropertyName: any, size?: number) {
 
     function saveCacheToLocalStorage() {
         try {
-            SettingsStorage.set(storagePropertyName, JSON.stringify(cache.toJSON()));
+            settingsStorage.set(storagePropertyName, JSON.stringify(cache.toJSON()));
         } catch (ex) {
             log.error('Error save to {0} cache, cause: {1}', storagePropertyName, ex);
         }
