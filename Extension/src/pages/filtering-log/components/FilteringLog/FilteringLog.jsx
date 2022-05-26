@@ -112,7 +112,7 @@ const FilteringLog = observer(() => {
         return () => {
             removeListenerCallback();
         };
-    }, [logStore]);
+    }, [logStore, wizardStore]);
 
     useEffect(() => {
         const windowStateHandler = () => {
