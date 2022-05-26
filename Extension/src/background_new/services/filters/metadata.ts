@@ -66,6 +66,16 @@ export class MetadataStorage {
         return this.data.groups.find(el => el.groupId === groupId);
     }
 
+    getGroupByFilterId(filterId: number) {
+        const filter = this.getFilter(filterId);
+
+        if (!filter) {
+            return;
+        }
+
+        return this.getGroup(filter.groupId);
+    }
+
     getTags() {
         return this.data.tags;
     }

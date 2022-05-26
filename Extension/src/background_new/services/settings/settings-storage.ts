@@ -49,6 +49,8 @@ export class SettingsStorage {
 
     settings = SettingsStorage.defaultSettings;
 
+    isInit = false;
+
     async init() {
         const settings = await storage.get(ADGUARD_SETTINGS_KEY) as Partial<Settings>;
 
@@ -67,6 +69,8 @@ export class SettingsStorage {
         this.settings = { ...SettingsStorage.defaultSettings, ...settings };
 
         await storage.set(ADGUARD_SETTINGS_KEY, settings);
+
+        this.isInit = true;
     }
 
     async set<T extends SettingOption>(key: T, value: Settings[T]): Promise<void> {

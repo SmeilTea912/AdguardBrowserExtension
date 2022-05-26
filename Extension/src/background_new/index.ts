@@ -13,11 +13,11 @@ import { CustomFilterService } from './services/filters/custom/service';
 
 (async () => {
     await SettingsService.init();
-    UiService.init();
-    PopupService.init();
     await FiltersService.init();
     await Allowlist.init();
     await Userrules.init();
+    UiService.init();
+    PopupService.init();
     await CustomFilterService.init();
     await Engine.start();
 

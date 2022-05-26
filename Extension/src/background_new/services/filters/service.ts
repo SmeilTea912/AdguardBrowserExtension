@@ -12,10 +12,12 @@ import { messageHandler } from '../../message-handler';
 import { Engine } from '../../engine';
 import { listeners } from '../../notifier';
 import { FiltersApi } from './api';
+import { pageStats } from './page-stats';
 
 export class FiltersService {
     static async init() {
         await FiltersApi.initMetadata();
+        pageStats.init();
 
         // TODO: debounce message events
         messageHandler.addListener(MessageType.ADD_AND_ENABLE_FILTER, FiltersService.onFilterEnable);

@@ -18,6 +18,10 @@ export enum SettingOption {
 
     CUSTOM_FILTERS = 'custom_filters',
 
+    // page stats
+
+    PAGE_STATISTIC = 'page-statistic',
+
     // user settings
 
     DISABLE_DETECT_FILTERS = 'detect-filters-disabled',
@@ -107,6 +111,8 @@ export type Settings = {
     [SettingOption.I18N_METADATA]?: string,
 
     [SettingOption.CUSTOM_FILTERS]?: string,
+
+    [SettingOption.PAGE_STATISTIC]?: string,
 };
 
 // TODO: use setting import validation in settings service
