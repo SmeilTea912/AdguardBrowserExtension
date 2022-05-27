@@ -814,7 +814,7 @@ ace.define('ace/mode/adguard_highlight_rules', [], (require, exports, module) =>
                     token: 'keyword.operator',
                 },
                 {
-                    regex: /(domain|app)=/,
+                    regex: /(domain|app|denyallow)=/,
                     token: 'keyword.control',
                     next: 'options_domain_app',
                 },
@@ -855,7 +855,7 @@ ace.define('ace/mode/adguard_highlight_rules', [], (require, exports, module) =>
                     token: 'keyword.control',
                 },
                 {
-                    regex: /important|badfilter|match-case/,
+                    regex: /important|badfilter|match-case|all/,
                     token: 'keyword.control',
                 },
                 {
