@@ -1,6 +1,10 @@
 ---
 name: Feature request
 about: Suggest an idea for AdGuard Browser Extension
+title: ''
+labels: ''
+assignees: ''
+
 ---
 
 <!--  As an open-source project with a dedicated but small maintainer team, it can sometimes take a long time for issues to be addressed so please be patient and we will get back to you as soon as we can.
